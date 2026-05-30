@@ -1,214 +1,97 @@
 # -*- coding: utf-8 -*-
-"""Backtest endpoints."""
+"""Backtest API schemas."""
 
 from __future__ import annotations
 
-import logging
-from datetime import date
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-
-from api.deps import get_database_manager
-from api.v1.schemas.backtest import (
-    BacktestRunRequest,
-    BacktestRunResponse,
-    BacktestResultItem,
-    BacktestResultsResponse,
-    PerformanceMetrics,
-)
-from api.v1.schemas.common import ErrorResponse
-from src.services.backtest_service import BacktestService
-from src.storage import DatabaseManager
-
-logger = logging.getLogger(__name__)
-
-router = APIRouter()
+from pydantic import BaseModel, Field
 
 
-def _validate_analysis_date_range(
-    analysis_date_from: Optional[date],
-    analysis_date_to: Optional[date],
-) -> None:
-    if analysis_date_from and analysis_date_to and analysis_date_from > analysis_date_to:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "invalid_params",
-                "message": "analysis_date_from cannot be after analysis_date_to",
-            },
-        )
+class BacktestRunRequest(BaseModel):
+    code: Optional[str] = Field(None, description="仅回测指定股票")
+    force: bool = Field(False, description="强制重新计算")
+    eval_window_days: Optional[int] = Field(None, ge=1, le=120, description="评估窗口（交易日数）")
+    min_age_days: Optional[int] = Field(None, ge=0, le=365, description="分析记录最小天龄（0=不限）")
+    limit: int = Field(200, ge=1, le=2000, description="最多处理的分析记录数")
 
 
-@router.post(
-    "/run",
-    response_model=BacktestRunResponse,
-    responses={
-        200: {"description": "回测执行完成"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
-    },
-    summary="触发回测",
-    description="对历史分析记录进行回测评估，并写入 backtest_results/backtest_summaries",
-)
-def run_backtest(
-    request: BacktestRunRequest,
-    db_manager: DatabaseManager = Depends(get_database_manager),
-) -> BacktestRunResponse:
-    try:
-        service = BacktestService(db_manager)
-        stats = service.run_backtest(
-            code=request.code,
-            force=request.force,
-            eval_window_days=request.eval_window_days,
-            min_age_days=request.min_age_days,
-            limit=request.limit,
-        )
-        return BacktestRunResponse(**stats)
-    except Exception as exc:
-        logger.error(f"回测执行失败: {exc}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail={"error": "internal_error", "message": f"回测执行失败: {str(exc)}"},
-        )
+class BacktestRunResponse(BaseModel):
+    processed: int = Field(..., description="候选记录数")
+    saved: int = Field(..., description="写入回测结果数")
+    completed: int = Field(..., description="完成回测数")
+    insufficient: int = Field(..., description="数据不足数")
+    errors: int = Field(..., description="错误数")
 
 
-@router.get(
-    "/results",
-    response_model=BacktestResultsResponse,
-    responses={
-        200: {"description": "回测结果列表"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
-    },
-    summary="获取回测结果",
-    description="分页获取回测结果，支持按股票代码过滤",
-)
-def get_backtest_results(
-    code: Optional[str] = Query(None, description="股票代码筛选"),
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    page: int = Query(1, ge=1, description="页码"),
-    limit: int = Query(20, ge=1, le=200, description="每页数量"),
-    db_manager: DatabaseManager = Depends(get_database_manager),
-) -> BacktestResultsResponse:
-    try:
-        _validate_analysis_date_range(analysis_date_from, analysis_date_to)
-        service = BacktestService(db_manager)
-        data = service.get_recent_evaluations(
-            code=code,
-            eval_window_days=eval_window_days,
-            limit=limit,
-            page=page,
-            analysis_date_from=analysis_date_from,
-            analysis_date_to=analysis_date_to,
-        )
-        items = [BacktestResultItem(**item) for item in data.get("items", [])]
-        return BacktestResultsResponse(
-            total=int(data.get("total", 0)),
-            page=page,
-            limit=limit,
-            items=items,
-        )
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error(f"查询回测结果失败: {exc}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail={"error": "internal_error", "message": f"查询回测结果失败: {str(exc)}"},
-        )
+class BacktestResultItem(BaseModel):
+    analysis_history_id: int
+    code: str
+    stock_name: Optional[str] = None
+    analysis_date: Optional[str] = None
+    eval_window_days: int
+    engine_version: str
+    eval_status: str
+    evaluated_at: Optional[str] = None
+    operation_advice: Optional[str] = None
+    trend_prediction: Optional[str] = None
+    position_recommendation: Optional[str] = None
+    start_price: Optional[float] = None
+    end_close: Optional[float] = None
+    max_high: Optional[float] = None
+    min_low: Optional[float] = None
+    stock_return_pct: Optional[float] = None
+    actual_return_pct: Optional[float] = None
+    actual_movement: Optional[str] = None
+    direction_expected: Optional[str] = None
+    direction_correct: Optional[bool] = None
+    outcome: Optional[str] = None
+    stop_loss: Optional[float] = None
+    take_profit: Optional[float] = None
+    hit_stop_loss: Optional[bool] = None
+    hit_take_profit: Optional[bool] = None
+    first_hit: Optional[str] = None
+    first_hit_date: Optional[str] = None
+    first_hit_trading_days: Optional[int] = None
+    simulated_entry_price: Optional[float] = None
+    simulated_exit_price: Optional[float] = None
+    simulated_exit_reason: Optional[str] = None
+    simulated_return_pct: Optional[float] = None
 
 
-@router.get(
-    "/performance",
-    response_model=PerformanceMetrics,
-    responses={
-        200: {"description": "整体回测表现"},
-        404: {"description": "无回测汇总", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
-    },
-    summary="获取整体回测表现",
-)
-def get_overall_performance(
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    db_manager: DatabaseManager = Depends(get_database_manager),
-) -> PerformanceMetrics:
-    try:
-        _validate_analysis_date_range(analysis_date_from, analysis_date_to)
-        service = BacktestService(db_manager)
-        summary = service.get_summary(
-            scope="overall",
-            code=None,
-            eval_window_days=eval_window_days,
-            analysis_date_from=analysis_date_from,
-            analysis_date_to=analysis_date_to,
-        )
-        if summary is None:
-            raise HTTPException(
-                status_code=404,
-                detail={"error": "not_found", "message": "未找到整体回测汇总"},
-            )
-        return PerformanceMetrics(**summary)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "invalid_params", "message": str(exc)},
-        )
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error(f"查询整体表现失败: {exc}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail={"error": "internal_error", "message": f"查询整体表现失败: {str(exc)}"},
-        )
+class BacktestResultsResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    items: List[BacktestResultItem] = Field(default_factory=list)
 
 
-@router.get(
-    "/performance/{code}",
-    response_model=PerformanceMetrics,
-    responses={
-        200: {"description": "单股回测表现"},
-        404: {"description": "无回测汇总", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
-    },
-    summary="获取单股回测表现",
-)
-def get_stock_performance(
-    code: str,
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    db_manager: DatabaseManager = Depends(get_database_manager),
-) -> PerformanceMetrics:
-    try:
-        _validate_analysis_date_range(analysis_date_from, analysis_date_to)
-        service = BacktestService(db_manager)
-        summary = service.get_summary(
-            scope="stock",
-            code=code,
-            eval_window_days=eval_window_days,
-            analysis_date_from=analysis_date_from,
-            analysis_date_to=analysis_date_to,
-        )
-        if summary is None:
-            raise HTTPException(
-                status_code=404,
-                detail={"error": "not_found", "message": f"未找到 {code} 的回测汇总"},
-            )
-        return PerformanceMetrics(**summary)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "invalid_params", "message": str(exc)},
-        )
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error(f"查询单股表现失败: {exc}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail={"error": "internal_error", "message": f"查询单股表现失败: {str(exc)}"},
-        )
+class PerformanceMetrics(BaseModel):
+    scope: str
+    code: Optional[str] = None
+    eval_window_days: int
+    engine_version: str
+    computed_at: Optional[str] = None
+
+    total_evaluations: int
+    completed_count: int
+    insufficient_count: int
+    long_count: int
+    cash_count: int
+    win_count: int
+    loss_count: int
+    neutral_count: int
+
+    direction_accuracy_pct: Optional[float] = None
+    win_rate_pct: Optional[float] = None
+    neutral_rate_pct: Optional[float] = None
+    avg_stock_return_pct: Optional[float] = None
+    avg_simulated_return_pct: Optional[float] = None
+
+    stop_loss_trigger_rate: Optional[float] = None
+    take_profit_trigger_rate: Optional[float] = None
+    ambiguous_rate: Optional[float] = None
+    avg_days_to_first_hit: Optional[float] = None
+
+    advice_breakdown: Dict[str, Any] = Field(default_factory=dict)
+    diagnostics: Dict[str, Any] = Field(default_factory=dict)
