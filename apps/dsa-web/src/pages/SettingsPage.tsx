@@ -9,7 +9,6 @@ import {
   ChangePasswordCard,
   IntelligentImport,
   LLMChannelEditor,
-  NotificationTestPanel,
   SettingsCategoryNav,
   SettingsAlert,
   SettingsField,
@@ -348,6 +347,7 @@ const SettingsPage: React.FC = () => {
     'ADMIN_AUTH_ENABLED',
   ]);
   const AGENT_HIDDEN_KEYS = new Set<string>();
+  const NOTIFICATION_VISIBLE_KEY_RE = /^(FEISHU_|DINGTALK_)/;
   const activeItems =
     activeCategory === 'ai_model'
       ? rawActiveItems.filter((item) => {
@@ -361,6 +361,8 @@ const SettingsPage: React.FC = () => {
       })
       : activeCategory === 'system'
         ? rawActiveItems.filter((item) => !SYSTEM_HIDDEN_KEYS.has(item.key))
+      : activeCategory === 'notification'
+        ? rawActiveItems.filter((item) => NOTIFICATION_VISIBLE_KEY_RE.test(item.key))
       : activeCategory === 'agent'
         ? rawActiveItems.filter((item) => !AGENT_HIDDEN_KEYS.has(item.key))
       : rawActiveItems;
@@ -497,6 +499,7 @@ const SettingsPage: React.FC = () => {
 
   const desktopUpdateNotice = getDesktopUpdateNotice(desktopUpdateState);
   const shouldGuardActiveConfigPanel = activeCategory === 'notification' || activeCategory === 'agent';
+  const shouldShowActiveConfigPanel = activeCategory !== 'ai_model';
   const activeConfigPanelErrorTitle = activeCategory === 'agent' ? 'Agent 设置' : '通知设置';
   const settingsPanelDiagnosticHint = isDesktopRuntime ? (
     <>
@@ -788,20 +791,7 @@ const SettingsPage: React.FC = () => {
             {activeCategory === 'system' && passwordChangeable ? (
               <ChangePasswordCard />
             ) : null}
-            {activeCategory === 'notification' ? (
-              <SettingsPanelErrorBoundary
-                title="通知测试"
-                resetKey={`notification-test:${configVersion}`}
-                diagnosticHint={settingsPanelDiagnosticHint}
-              >
-                <NotificationTestPanel
-                  items={rawActiveItems.map((item) => ({ key: item.key, value: String(item.value ?? '') }))}
-                  maskToken={maskToken}
-                  disabled={isSaving || isLoading}
-                />
-              </SettingsPanelErrorBoundary>
-            ) : null}
-            {shouldGuardActiveConfigPanel && activeItems.length ? (
+            {shouldShowActiveConfigPanel && shouldGuardActiveConfigPanel && activeItems.length ? (
               <SettingsPanelErrorBoundary
                 title={activeConfigPanelErrorTitle}
                 resetKey={`${activeCategory}:${configVersion}`}
@@ -809,7 +799,7 @@ const SettingsPage: React.FC = () => {
               >
                 {activeConfigPanel}
               </SettingsPanelErrorBoundary>
-            ) : activeConfigPanel}
+            ) : shouldShowActiveConfigPanel ? activeConfigPanel : null}
           </section>
         </div>
       )}

@@ -348,6 +348,60 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
             displayOrder: 1,
           },
         },
+        {
+          key: 'FEISHU_WEBHOOK_URL',
+          value: 'https://open.feishu.cn/open-apis/bot/v2/hook/mock',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'FEISHU_WEBHOOK_URL',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 2,
+          },
+        },
+        {
+          key: 'DINGTALK_APP_KEY',
+          value: 'ding-app-key',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'DINGTALK_APP_KEY',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 3,
+          },
+        },
+        {
+          key: 'PUSHPLUS_TOKEN',
+          value: 'pushplus-token',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'PUSHPLUS_TOKEN',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 4,
+          },
+        },
       ],
     },
     issueByKey: {},
@@ -749,14 +803,25 @@ describe('SettingsPage', () => {
     expect(load).toHaveBeenCalledTimes(1);
   });
 
-  it('renders notification test panel before notification fields', () => {
+  it('hides generic active config panel on ai model settings page', () => {
+    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'ai_model' }));
+
+    render(<SettingsPage />);
+
+    expect(screen.getByText('AI 模型接入')).toBeInTheDocument();
+    expect(screen.queryByText('当前分类配置项')).not.toBeInTheDocument();
+  });
+
+  it('only renders Feishu and DingTalk fields on notification settings page', () => {
     useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
 
     render(<SettingsPage />);
 
-    expect(screen.getByText('通知测试面板:WECHAT_WEBHOOK_URL')).toBeInTheDocument();
-    expect(screen.getByText('WECHAT_WEBHOOK_URL')).toBeInTheDocument();
-    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知测试');
+    expect(screen.queryByText(/通知测试面板/)).not.toBeInTheDocument();
+    expect(screen.getByText('FEISHU_WEBHOOK_URL')).toBeInTheDocument();
+    expect(screen.getByText('DINGTALK_APP_KEY')).toBeInTheDocument();
+    expect(screen.queryByText('WECHAT_WEBHOOK_URL')).not.toBeInTheDocument();
+    expect(screen.queryByText('PUSHPLUS_TOKEN')).not.toBeInTheDocument();
     expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知设置');
   });
 
@@ -765,7 +830,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getAllByText(/浏览器开发者工具控制台与后端日志/)).toHaveLength(2);
+    expect(screen.getAllByText(/浏览器开发者工具控制台与后端日志/)).toHaveLength(1);
     expect(screen.queryByText('desktop.log')).not.toBeInTheDocument();
   });
 
@@ -775,7 +840,7 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getAllByText('desktop.log')).toHaveLength(2);
+    expect(screen.getAllByText('desktop.log')).toHaveLength(1);
     expect(screen.queryByText(/浏览器开发者工具控制台与后端日志/)).not.toBeInTheDocument();
   });
 
