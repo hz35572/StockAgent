@@ -291,6 +291,24 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
       ],
       data_source: [
         {
+          key: 'TICKFLOW_API_KEY',
+          value: 'tickflow-key',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'TICKFLOW_API_KEY',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 1,
+          },
+        },
+        {
           key: 'REALTIME_SOURCE_PRIORITY',
           value: 'tencent,sina',
           rawValueExists: true,
@@ -305,7 +323,115 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
             isEditable: true,
             options: [],
             validation: {},
-            displayOrder: 1,
+            displayOrder: 2,
+          },
+        },
+        {
+          key: 'TAVILY_API_KEYS',
+          value: 'tavily-key',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'TAVILY_API_KEYS',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 3,
+          },
+        },
+        {
+          key: 'SERPAPI_API_KEYS',
+          value: 'serp-key',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'SERPAPI_API_KEYS',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 4,
+          },
+        },
+        {
+          key: 'NEWS_MAX_AGE_DAYS',
+          value: '7',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'NEWS_MAX_AGE_DAYS',
+            category: 'data_source',
+            dataType: 'integer',
+            uiControl: 'number',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 5,
+          },
+        },
+        {
+          key: 'NEWS_STRATEGY_PROFILE',
+          value: 'short',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'NEWS_STRATEGY_PROFILE',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'select',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: ['ultra_short', 'short', 'medium', 'long'],
+            validation: {},
+            displayOrder: 6,
+          },
+        },
+        {
+          key: 'TUSHARE_TOKEN',
+          value: 'tushare-token',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'TUSHARE_TOKEN',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 7,
+          },
+        },
+        {
+          key: 'SEARXNG_BASE_URLS',
+          value: 'https://search.example.com',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'SEARXNG_BASE_URLS',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'textarea',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 8,
           },
         },
       ],
@@ -586,13 +712,20 @@ describe('SettingsPage', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  it('renders data source fields on the data source settings page', () => {
+  it('only renders selected data source fields on the data source settings page', () => {
     useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'data_source' }));
 
     render(<SettingsPage />);
 
+    expect(screen.getByText('TICKFLOW_API_KEY')).toBeInTheDocument();
     expect(screen.getByText('REALTIME_SOURCE_PRIORITY')).toBeInTheDocument();
+    expect(screen.getByText('TAVILY_API_KEYS')).toBeInTheDocument();
+    expect(screen.getByText('SERPAPI_API_KEYS')).toBeInTheDocument();
+    expect(screen.getByText('NEWS_MAX_AGE_DAYS')).toBeInTheDocument();
+    expect(screen.getByText('NEWS_STRATEGY_PROFILE')).toBeInTheDocument();
     expect(screen.queryByText('STOCK_LIST')).not.toBeInTheDocument();
+    expect(screen.queryByText('TUSHARE_TOKEN')).not.toBeInTheDocument();
+    expect(screen.queryByText('SEARXNG_BASE_URLS')).not.toBeInTheDocument();
   });
 
   it('refreshes server state after llm channel editor saves', async () => {

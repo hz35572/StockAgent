@@ -26,6 +26,15 @@ const SETTINGS_VISIBLE_CATEGORIES = new Set<SystemConfigCategory>([
   'notification',
 ]);
 
+const DATA_SOURCE_VISIBLE_KEYS = new Set([
+  'TICKFLOW_API_KEY',
+  'REALTIME_SOURCE_PRIORITY',
+  'TAVILY_API_KEYS',
+  'SERPAPI_API_KEYS',
+  'NEWS_MAX_AGE_DAYS',
+  'NEWS_STRATEGY_PROFILE',
+]);
+
 type DesktopWindow = Window & {
   dsaDesktop?: {
     version?: unknown;
@@ -382,6 +391,8 @@ const SettingsPage: React.FC = () => {
         ? rawActiveItems.filter((item) => !SYSTEM_HIDDEN_KEYS.has(item.key))
       : visibleActiveCategory === 'notification'
         ? rawActiveItems.filter((item) => NOTIFICATION_VISIBLE_KEY_RE.test(item.key) && !FEISHU_WEBHOOK_KEY_RE.test(item.key))
+      : visibleActiveCategory === 'data_source'
+        ? rawActiveItems.filter((item) => DATA_SOURCE_VISIBLE_KEYS.has(item.key))
       : visibleActiveCategory === 'agent'
         ? rawActiveItems.filter((item) => !AGENT_HIDDEN_KEYS.has(item.key))
       : rawActiveItems;
@@ -612,7 +623,6 @@ const SettingsPage: React.FC = () => {
           <aside className="lg:sticky lg:top-4 lg:self-start">
             <SettingsCategoryNav
               categories={visibleCategories}
-              itemsByCategory={itemsByCategory}
               activeCategory={visibleActiveCategory}
               onSelect={setActiveCategory}
             />

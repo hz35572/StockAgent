@@ -1,19 +1,16 @@
 import type React from 'react';
-import { Badge } from '../common';
 import { getCategoryDescriptionZh, getCategoryTitleZh } from '../../utils/systemConfigI18n';
-import type { SystemConfigCategorySchema, SystemConfigItem } from '../../types/systemConfig';
+import type { SystemConfigCategorySchema } from '../../types/systemConfig';
 import { cn } from '../../utils/cn';
 
 interface SettingsCategoryNavProps {
   categories: SystemConfigCategorySchema[];
-  itemsByCategory: Record<string, SystemConfigItem[]>;
   activeCategory: string;
   onSelect: (category: string) => void;
 }
 
 export const SettingsCategoryNav: React.FC<SettingsCategoryNavProps> = ({
   categories,
-  itemsByCategory,
   activeCategory,
   onSelect,
 }) => {
@@ -27,7 +24,6 @@ export const SettingsCategoryNav: React.FC<SettingsCategoryNavProps> = ({
       <div className="space-y-2.5">
         {categories.map((category) => {
           const isActive = category.category === activeCategory;
-          const count = (itemsByCategory[category.category] || []).length;
           const title = getCategoryTitleZh(category.category, category.title);
           const description = getCategoryDescriptionZh(category.category, category.description);
 
@@ -43,22 +39,13 @@ export const SettingsCategoryNav: React.FC<SettingsCategoryNavProps> = ({
               )}
               onClick={() => onSelect(category.category)}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className={cn('text-sm font-semibold tracking-tight', isActive ? 'text-foreground' : 'text-secondary-text')}>
-                    {title}
-                  </p>
-                  {description ? (
-                    <p className={cn('mt-1 line-clamp-2 text-xs leading-5', isActive ? 'text-secondary-text' : 'text-muted-text')}>{description}</p>
-                  ) : null}
-                </div>
-                <Badge
-                  variant={isActive ? 'info' : 'default'}
-                  size="sm"
-                  className={isActive ? 'settings-accent-badge border-[hsl(var(--primary)/0.36)]' : 'border-[var(--settings-border)] bg-[var(--settings-surface-hover)] text-muted-text'}
-                >
-                  {count}
-                </Badge>
+              <div className="min-w-0">
+                <p className={cn('text-sm font-semibold tracking-tight', isActive ? 'text-foreground' : 'text-secondary-text')}>
+                  {title}
+                </p>
+                {description ? (
+                  <p className={cn('mt-1 line-clamp-2 text-xs leading-5', isActive ? 'text-secondary-text' : 'text-muted-text')}>{description}</p>
+                ) : null}
               </div>
             </button>
           );
