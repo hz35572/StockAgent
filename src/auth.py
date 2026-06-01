@@ -30,6 +30,7 @@ RATE_LIMIT_WINDOW_SEC = 300
 RATE_LIMIT_MAX_FAILURES = 5
 SESSION_MAX_AGE_HOURS_DEFAULT = 24
 MIN_PASSWORD_LEN = 6
+AUTH_ENABLED_TRUE_VALUES = {"true", "1", "yes"}
 
 # Lazy-loaded state
 _auth_enabled: Optional[bool] = None
@@ -67,15 +68,17 @@ def _get_credential_path() -> Path:
 
 
 def _is_auth_enabled_from_env() -> bool:
-    """Read ADMIN_AUTH_ENABLED from .env file."""
+    """Read ADMIN_AUTH_ENABLED from the active .env file or process env."""
     _ensure_env_loaded()
     env_file = os.getenv("ENV_FILE")
     env_path = Path(env_file) if env_file else Path(__file__).resolve().parent.parent / ".env"
-    if not env_path.exists():
-        return False
-    values = dotenv_values(env_path)
-    val = (values.get("ADMIN_AUTH_ENABLED") or "").strip().lower()
-    return val in ("true", "1", "yes")
+    if env_path.exists():
+        values = dotenv_values(env_path)
+        val = (values.get("ADMIN_AUTH_ENABLED") or "").strip().lower()
+        return val in AUTH_ENABLED_TRUE_VALUES
+
+    val = (os.getenv("ADMIN_AUTH_ENABLED") or "").strip().lower()
+    return val in AUTH_ENABLED_TRUE_VALUES
 
 
 def rotate_session_secret() -> bool:
