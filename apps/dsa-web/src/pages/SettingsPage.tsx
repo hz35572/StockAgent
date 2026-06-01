@@ -20,6 +20,12 @@ import { WEB_BUILD_INFO } from '../utils/constants';
 import { getCategoryDescriptionZh } from '../utils/systemConfigI18n';
 import type { SystemConfigCategory } from '../types/systemConfig';
 
+const SETTINGS_VISIBLE_CATEGORIES = new Set<SystemConfigCategory>([
+  'ai_model',
+  'data_source',
+  'notification',
+]);
+
 type DesktopWindow = Window & {
   dsaDesktop?: {
     version?: unknown;
@@ -245,10 +251,22 @@ const SettingsPage: React.FC = () => {
     configVersion,
     maskToken,
   } = useSystemConfig();
+  const visibleCategories = categories.filter((category) =>
+    SETTINGS_VISIBLE_CATEGORIES.has(category.category as SystemConfigCategory)
+  );
+  const visibleActiveCategory = SETTINGS_VISIBLE_CATEGORIES.has(activeCategory as SystemConfigCategory)
+    ? activeCategory
+    : visibleCategories[0]?.category ?? 'ai_model';
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (activeCategory !== visibleActiveCategory && visibleCategories.length > 0) {
+      setActiveCategory(visibleActiveCategory);
+    }
+  }, [activeCategory, setActiveCategory, visibleActiveCategory, visibleCategories.length]);
 
   useEffect(() => {
     if (!toast) {
@@ -308,7 +326,7 @@ const SettingsPage: React.FC = () => {
     };
   }, [canCheckDesktopUpdate, desktopRuntimeApi]);
 
-  const rawActiveItems = itemsByCategory[activeCategory] || [];
+  const rawActiveItems = itemsByCategory[visibleActiveCategory] || [];
   const rawActiveItemMap = new Map(rawActiveItems.map((item) => [item.key, String(item.value ?? '')]));
   const hasConfiguredChannels = Boolean((rawActiveItemMap.get('LLM_CHANNELS') || '').trim());
   const hasLitellmConfig = Boolean((rawActiveItemMap.get('LITELLM_CONFIG') || '').trim());
@@ -348,8 +366,9 @@ const SettingsPage: React.FC = () => {
   ]);
   const AGENT_HIDDEN_KEYS = new Set<string>();
   const NOTIFICATION_VISIBLE_KEY_RE = /^(FEISHU_|DINGTALK_)/;
+  const FEISHU_WEBHOOK_KEY_RE = /^FEISHU_WEBHOOK_/;
   const activeItems =
-    activeCategory === 'ai_model'
+    visibleActiveCategory === 'ai_model'
       ? rawActiveItems.filter((item) => {
         if (hasConfiguredChannels && LLM_CHANNEL_KEY_RE.test(item.key)) {
           return false;
@@ -359,11 +378,11 @@ const SettingsPage: React.FC = () => {
         }
         return true;
       })
-      : activeCategory === 'system'
+      : visibleActiveCategory === 'system'
         ? rawActiveItems.filter((item) => !SYSTEM_HIDDEN_KEYS.has(item.key))
-      : activeCategory === 'notification'
-        ? rawActiveItems.filter((item) => NOTIFICATION_VISIBLE_KEY_RE.test(item.key))
-      : activeCategory === 'agent'
+      : visibleActiveCategory === 'notification'
+        ? rawActiveItems.filter((item) => NOTIFICATION_VISIBLE_KEY_RE.test(item.key) && !FEISHU_WEBHOOK_KEY_RE.test(item.key))
+      : visibleActiveCategory === 'agent'
         ? rawActiveItems.filter((item) => !AGENT_HIDDEN_KEYS.has(item.key))
       : rawActiveItems;
   const isEnvBackupAllowed = isDesktopRuntime || authEnabled;
@@ -498,9 +517,9 @@ const SettingsPage: React.FC = () => {
   };
 
   const desktopUpdateNotice = getDesktopUpdateNotice(desktopUpdateState);
-  const shouldGuardActiveConfigPanel = activeCategory === 'notification' || activeCategory === 'agent';
-  const shouldShowActiveConfigPanel = activeCategory !== 'ai_model';
-  const activeConfigPanelErrorTitle = activeCategory === 'agent' ? 'Agent 设置' : '通知设置';
+  const shouldGuardActiveConfigPanel = visibleActiveCategory === 'notification' || visibleActiveCategory === 'agent';
+  const shouldShowActiveConfigPanel = visibleActiveCategory !== 'ai_model';
+  const activeConfigPanelErrorTitle = visibleActiveCategory === 'agent' ? 'Agent 设置' : '通知设置';
   const settingsPanelDiagnosticHint = isDesktopRuntime ? (
     <>
       请查看并提供桌面端日志
@@ -513,7 +532,7 @@ const SettingsPage: React.FC = () => {
   const activeConfigPanel = activeItems.length ? (
     <SettingsSectionCard
       title="当前分类配置项"
-      description={getCategoryDescriptionZh(activeCategory as SystemConfigCategory, '') || '使用统一字段卡片维护当前分类的系统配置。'}
+      description={getCategoryDescriptionZh(visibleActiveCategory as SystemConfigCategory, '') || '使用统一字段卡片维护当前分类的系统配置。'}
     >
       {activeItems.map((item) => (
         <SettingsField
@@ -541,7 +560,7 @@ const SettingsPage: React.FC = () => {
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">系统设置</h1>
             <p className="text-xs leading-6 text-muted-text">
-              统一管理模型、数据源、通知、安全认证与导入能力。
+              统一管理模型、数据源与通知渠道。
             </p>
           </div>
 
@@ -592,16 +611,16 @@ const SettingsPage: React.FC = () => {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
           <aside className="lg:sticky lg:top-4 lg:self-start">
             <SettingsCategoryNav
-              categories={categories}
+              categories={visibleCategories}
               itemsByCategory={itemsByCategory}
-              activeCategory={activeCategory}
+              activeCategory={visibleActiveCategory}
               onSelect={setActiveCategory}
             />
           </aside>
 
           <section className="space-y-4">
-            {activeCategory === 'system' ? <AuthSettingsCard /> : null}
-            {activeCategory === 'system' ? (
+            {visibleActiveCategory === 'system' ? <AuthSettingsCard /> : null}
+            {visibleActiveCategory === 'system' ? (
               <SettingsSectionCard
                 title="版本信息"
                 description="用于确认当前 WebUI 静态资源是否已经切换到最新构建。"
@@ -695,7 +714,7 @@ const SettingsPage: React.FC = () => {
                 ) : null}
               </SettingsSectionCard>
             ) : null}
-            {activeCategory === 'system' ? (
+            {visibleActiveCategory === 'system' ? (
               <SettingsSectionCard
                 title="配置备份"
                 description="导出当前已保存的 .env 备份，或从备份文件恢复配置。导入会覆盖备份中出现的键并立即重载。"
@@ -754,7 +773,7 @@ const SettingsPage: React.FC = () => {
                 </div>
               </SettingsSectionCard>
             ) : null}
-            {activeCategory === 'base' ? (
+            {visibleActiveCategory === 'base' ? (
               <SettingsSectionCard
                 title="智能导入"
                 description="从图片、文件或剪贴板中提取股票代码，并合并到自选股列表。"
@@ -772,7 +791,7 @@ const SettingsPage: React.FC = () => {
                 />
               </SettingsSectionCard>
             ) : null}
-            {activeCategory === 'ai_model' ? (
+            {visibleActiveCategory === 'ai_model' ? (
               <SettingsSectionCard
                 title="AI 模型接入"
                 description="统一管理模型渠道、基础地址、API Key、主模型与备选模型。"
@@ -788,13 +807,13 @@ const SettingsPage: React.FC = () => {
                 />
               </SettingsSectionCard>
             ) : null}
-            {activeCategory === 'system' && passwordChangeable ? (
+            {visibleActiveCategory === 'system' && passwordChangeable ? (
               <ChangePasswordCard />
             ) : null}
             {shouldShowActiveConfigPanel && shouldGuardActiveConfigPanel && activeItems.length ? (
               <SettingsPanelErrorBoundary
                 title={activeConfigPanelErrorTitle}
-                resetKey={`${activeCategory}:${configVersion}`}
+                resetKey={`${visibleActiveCategory}:${configVersion}`}
                 diagnosticHint={settingsPanelDiagnosticHint}
               >
                 {activeConfigPanel}

@@ -58,7 +58,7 @@ describe('LoginPage', () => {
     render(<LoginPage />);
 
     fireEvent.change(screen.getByLabelText('登录密码'), { target: { value: 'passwd6' } });
-    fireEvent.click(screen.getByRole('button', { name: '授权进入工作台' }));
+    fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/settings', { replace: true }));
     expect(screen.getByLabelText('登录密码')).toHaveAttribute('data-appearance', 'login');

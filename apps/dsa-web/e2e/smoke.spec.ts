@@ -9,7 +9,7 @@ async function login(page: Page) {
   await page.waitForLoadState('domcontentloaded');
 
   const passwordInput = page.locator('#password');
-  const submitButton = page.getByRole('button', { name: /授权进入工作台|完成设置并登录/ });
+  const submitButton = page.getByRole('button', { name: /登录|完成设置并登录/ });
   const homeLink = page.getByRole('link', { name: '首页' });
 
   const isAlreadyAuthenticated =
@@ -44,14 +44,14 @@ test.describe('web smoke', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Check for branding
-    await expect(page.getByText('DAILY STOCK').first()).toBeVisible();
+    await expect(page.getByText('AI STOCK').first()).toBeVisible();
     await expect(page.getByText('Analysis Engine')).toBeVisible();
 
     // Check for password input
     await expect(page.locator('#password')).toBeVisible();
 
     // Check for submit button
-    await expect(page.getByRole('button', { name: /授权进入工作台|完成设置并登录/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /登录|完成设置并登录/ })).toBeVisible();
   });
 
   test('home page shows analysis entry and history panel after login', async ({ page }) => {
@@ -118,8 +118,11 @@ test.describe('web smoke', () => {
       await menuButton.click();
     }
 
-    // Check if navigation is visible
-    await expect(page.getByRole('link', { name: '回测' })).toBeVisible({ timeout: 5000 });
+    // Check if navigation is visible and hidden pages stay unavailable
+    await expect(page.getByRole('link', { name: '设置' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('link', { name: '持仓' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: '回测' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: '告警' })).toHaveCount(0);
   });
 
   test('settings page renders title and save actions after login', async ({ page }) => {
@@ -136,18 +139,12 @@ test.describe('web smoke', () => {
     await expect(page.getByRole('button', { name: /保存配置/ })).toBeVisible();
   });
 
-  test('backtest page renders filter controls after login', async ({ page }) => {
+  test('hidden portfolio, backtest, and alerts routes are not mounted after login', async ({ page }) => {
     await login(page);
 
-    // Navigate to backtest page by clicking the link
-    await page.getByRole('link', { name: '回测' }).click();
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-
-    // Check for filter controls
-    const filterInput = page.getByPlaceholder(/stock code/i);
-    await expect(filterInput).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole('button', { name: /filter/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible();
+    for (const route of ['/portfolio', '/backtest', '/alerts']) {
+      await page.goto(route);
+      await expect(page.getByText(/not found|404|页面不存在|未找到/i)).toBeVisible({ timeout: 10_000 });
+    }
   });
 });

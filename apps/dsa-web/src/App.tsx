@@ -12,13 +12,10 @@ import { useAgentChatStore } from './stores/agentChatStore';
 import './App.css';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
-const BacktestPage = lazy(() => import('./pages/BacktestPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
-const PortfolioPage = lazy(() => import('./pages/PortfolioPage'));
-const AlertsPage = lazy(() => import('./pages/AlertsPage'));
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -76,9 +73,6 @@ const AppContent: React.FC = () => {
       >
         <Route path="/" element={<HomePage />} />
         <Route path="/chat" element={<ChatPage />} />
-        <Route path="/portfolio" element={<PortfolioPage />} />
-        <Route path="/backtest" element={<BacktestPage />} />
-        <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
