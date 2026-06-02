@@ -142,6 +142,8 @@ vi.mock('../../components/settings', () => ({
   ),
   SettingsField: ({
     item,
+    showHelpButton = true,
+    showHelpDocs = true,
   }: {
     item: {
       key: string;
@@ -150,9 +152,13 @@ vi.mock('../../components/settings', () => ({
         options?: Array<string | { label: string; value: string }>;
       };
     };
+    showHelpButton?: boolean;
+    showHelpDocs?: boolean;
   }) => (
     <div>
       <div>{item.key}</div>
+      {showHelpButton ? <button type="button">查看 {item.key} 配置说明</button> : null}
+      {showHelpDocs ? <div>{item.key} 相关文档显示</div> : <div>{item.key} 相关文档隐藏</div>}
       {item.schema?.description ? <p>{item.schema.description}</p> : null}
       {item.schema?.options?.map((option) => {
         const label = typeof option === 'string' ? option : option.label;
@@ -726,6 +732,13 @@ describe('SettingsPage', () => {
     expect(screen.queryByText('STOCK_LIST')).not.toBeInTheDocument();
     expect(screen.queryByText('TUSHARE_TOKEN')).not.toBeInTheDocument();
     expect(screen.queryByText('SEARXNG_BASE_URLS')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '查看 REALTIME_SOURCE_PRIORITY 配置说明' })).toBeInTheDocument();
+    expect(screen.getByText('REALTIME_SOURCE_PRIORITY 相关文档隐藏')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 TICKFLOW_API_KEY 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 TAVILY_API_KEYS 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 SERPAPI_API_KEYS 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 NEWS_MAX_AGE_DAYS 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 NEWS_STRATEGY_PROFILE 配置说明' })).not.toBeInTheDocument();
   });
 
   it('refreshes server state after llm channel editor saves', async () => {
@@ -756,6 +769,8 @@ describe('SettingsPage', () => {
     expect(screen.queryByText(/通知测试面板/)).not.toBeInTheDocument();
     expect(screen.getByText('FEISHU_APP_ID')).toBeInTheDocument();
     expect(screen.getByText('DINGTALK_APP_KEY')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 FEISHU_APP_ID 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 DINGTALK_APP_KEY 配置说明' })).not.toBeInTheDocument();
     expect(screen.queryByText('FEISHU_WEBHOOK_URL')).not.toBeInTheDocument();
     expect(screen.queryByText('WECHAT_WEBHOOK_URL')).not.toBeInTheDocument();
     expect(screen.queryByText('PUSHPLUS_TOKEN')).not.toBeInTheDocument();

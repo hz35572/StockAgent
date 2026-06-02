@@ -47,6 +47,8 @@ interface SettingsFieldProps {
   disabled?: boolean;
   onChange: (key: string, value: string) => void;
   issues?: ConfigValidationIssue[];
+  showHelpButton?: boolean;
+  showHelpDocs?: boolean;
 }
 
 function renderFieldControl(
@@ -198,6 +200,8 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
   disabled = false,
   onChange,
   issues = [],
+  showHelpButton = true,
+  showHelpDocs = true,
 }) => {
   const schema = item.schema;
   const isMultiValue = isMultiValueField(item);
@@ -219,12 +223,15 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
         <label className="text-sm font-semibold text-foreground" htmlFor={controlId}>
           {title}
         </label>
-        <SettingsHelpButton
-          fieldKey={item.key}
-          title={title}
-          schema={schema}
-          description={description}
-        />
+        {showHelpButton ? (
+          <SettingsHelpButton
+            fieldKey={item.key}
+            title={title}
+            schema={schema}
+            description={description}
+            showDocs={showHelpDocs}
+          />
+        ) : null}
         {schema?.isSensitive ? (
           <Badge variant="history" size="sm">
             敏感

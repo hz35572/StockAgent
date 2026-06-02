@@ -382,4 +382,77 @@ describe('SettingsField', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: '自选股列表' })).not.toBeInTheDocument();
   });
+
+  it('can hide field help button while keeping field content visible', () => {
+    render(
+      <SettingsField
+        item={{
+          key: 'TICKFLOW_API_KEY',
+          value: 'mock-key',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'TICKFLOW_API_KEY',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 1,
+            helpKey: 'settings.data_source.TICKFLOW_API_KEY',
+          },
+        }}
+        value="mock-key"
+        onChange={() => undefined}
+        showHelpButton={false}
+      />
+    );
+
+    expect(screen.getByLabelText('TickFlow API Key')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 TickFlow API Key 配置说明' })).not.toBeInTheDocument();
+  });
+
+  it('can hide related docs in field help dialog', () => {
+    render(
+      <SettingsField
+        item={{
+          key: 'REALTIME_SOURCE_PRIORITY',
+          value: 'tencent,sina',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'REALTIME_SOURCE_PRIORITY',
+            category: 'data_source',
+            dataType: 'string',
+            uiControl: 'textarea',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 2,
+            helpKey: 'settings.data_source.REALTIME_SOURCE_PRIORITY',
+            docs: [
+              {
+                label: '完整指南',
+                href: 'https://example.com/full-guide',
+              },
+            ],
+          },
+        }}
+        value="tencent,sina"
+        onChange={() => undefined}
+        showHelpDocs={false}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '查看 实时数据源优先级 配置说明' }));
+
+    expect(screen.getByRole('dialog', { name: '实时行情源优先级' })).toBeInTheDocument();
+    expect(screen.queryByText('相关文档')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /完整指南/ })).not.toBeInTheDocument();
+  });
 });

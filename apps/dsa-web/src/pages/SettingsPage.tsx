@@ -553,6 +553,11 @@ const SettingsPage: React.FC = () => {
           disabled={isSaving}
           onChange={setDraftValue}
           issues={issueByKey[item.key] || []}
+          showHelpButton={
+            visibleActiveCategory !== 'notification'
+            && (visibleActiveCategory !== 'data_source' || item.key === 'REALTIME_SOURCE_PRIORITY')
+          }
+          showHelpDocs={!(visibleActiveCategory === 'data_source' && item.key === 'REALTIME_SOURCE_PRIORITY')}
         />
       ))}
     </SettingsSectionCard>

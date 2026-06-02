@@ -15,6 +15,7 @@ interface SettingsHelpButtonProps {
   examples?: string[];
   docs?: SystemConfigFieldSchema['docs'];
   description?: string;
+  showDocs?: boolean;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -97,6 +98,7 @@ export const SettingsHelpButton: React.FC<SettingsHelpButtonProps> = ({
   examples: providedExamples,
   docs: providedDocs,
   description,
+  showDocs = true,
 }) => {
   const help = getSettingsHelpContent(helpKey ?? schema?.helpKey, description);
   const [open, setOpen] = useState(false);
@@ -105,7 +107,7 @@ export const SettingsHelpButton: React.FC<SettingsHelpButtonProps> = ({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const titleId = useId();
   const examples = providedExamples ?? schema?.examples ?? [];
-  const docs = providedDocs?.length ? providedDocs : schema?.docs?.length ? schema.docs : help?.docs ?? [];
+  const docs = showDocs ? providedDocs?.length ? providedDocs : schema?.docs?.length ? schema.docs : help?.docs ?? [] : [];
 
   useEffect(() => {
     if (!open) {
