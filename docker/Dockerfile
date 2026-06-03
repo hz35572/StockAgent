@@ -76,8 +76,8 @@ ENV API_PORT=8081
 # 暴露 API 端口
 EXPOSE 8081
 
-# 数据卷（持久化数据）
-VOLUME ["/app/data", "/app/logs", "/app/reports"]
+# 注意：Railway 不支持 Dockerfile 中的 VOLUME 指令
+# 如需持久化，请在 Railway Dashboard 中挂载 Volume 到 /app/data、/app/logs、/app/reports
 
 # 健康检查（FastAPI 模式）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
