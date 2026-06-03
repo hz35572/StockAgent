@@ -229,6 +229,7 @@ sudo firewall-cmd --reload
 
 - 直接部署：默认 8081，可通过 `WEBUI_PORT=xxxx` 修改
 - Docker：默认 8081，可通过 `API_PORT=xxxx` 修改
+- Railway 等托管平台：如果平台注入了 `PORT`，应用会优先监听 `PORT`；未设置时回退到 8081
 
 ### 5. 页面能打开，但 UI 元素异常变大 / 布局错乱
 
