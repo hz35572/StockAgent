@@ -260,6 +260,18 @@ const settingsHelpZhCN: SettingsHelpMap = {
       '如果飞书侧配置 IP 白名单，需要确认当前运行环境出口 IP 已加入白名单。',
     ],
   },
+  'settings.notification.FEISHU_APP_DIRECT': {
+    title: '飞书应用个人推送',
+    summary: '使用飞书应用机器人把分析报告主动推送到个人私聊或指定接收者。',
+    usage: '填写 FEISHU_APP_ID、FEISHU_APP_SECRET、FEISHU_APP_RECEIVE_ID，并按 ID 来源选择 FEISHU_APP_RECEIVE_ID_TYPE。',
+    valueNotes: [
+      '默认接收 ID 类型是 open_id，常见个人 ID 形如 ou_xxxxx。',
+      '应用需要完成发布，并具备发送消息相关权限；用户通常需要和机器人有可达关系。',
+      'FEISHU_APP_RECEIVE_ID 不是群 Webhook URL，不要填写 open-apis/bot/v2/hook 地址。',
+    ],
+    impact: ['影响飞书通知渠道；适合只推送给个人，不想建群机器人 Webhook 的场景。'],
+    notes: ['如果同时配置 FEISHU_WEBHOOK_URL 和 FEISHU_APP_RECEIVE_ID，飞书通知会同时发送到群和个人。'],
+  },
   'settings.notification.webhooks': {
     title: '企业微信 Webhook',
     summary: '配置企业微信群机器人 Webhook，用于把分析报告推送到指定群。',
@@ -346,7 +358,7 @@ const settingsHelpZhCN: SettingsHelpMap = {
   'settings.system.WEBUI_PORT': {
     title: 'WebUI 端口',
     summary: '控制 WebUI 服务监听的端口。',
-    usage: '本地默认 8000；如端口冲突可改为其他 1-65535 范围内端口。',
+    usage: '本地默认 8081；如端口冲突可改为其他 1-65535 范围内端口。',
     valueNotes: [
       'Docker 或云服务器访问还取决于宿主机端口映射和安全组。',
       '设置页保存只会写入 .env，不会让当前 WebUI/API 进程重新绑定端口。',
@@ -1092,6 +1104,18 @@ const settingsHelpEnUS: SettingsHelpMap = {
       'If IP allowlisting is enabled in Feishu, add the outbound IP of your runtime environment.',
     ],
   },
+  'settings.notification.FEISHU_APP_DIRECT': {
+    title: 'Feishu App Direct Message',
+    summary: 'Uses a Feishu app bot to proactively send analysis reports to a personal chat or target recipient.',
+    usage: 'Set FEISHU_APP_ID, FEISHU_APP_SECRET, FEISHU_APP_RECEIVE_ID, and choose FEISHU_APP_RECEIVE_ID_TYPE for the ID you have.',
+    valueNotes: [
+      'The default receive ID type is open_id; personal open IDs commonly look like ou_xxxxx.',
+      'The app must be published and have message-sending permissions; the recipient must be reachable by the bot.',
+      'FEISHU_APP_RECEIVE_ID is not a group webhook URL; do not paste an open-apis/bot/v2/hook URL here.',
+    ],
+    impact: ['Affects the Feishu notification channel and is useful when reports should go only to one person.'],
+    notes: ['If both FEISHU_WEBHOOK_URL and FEISHU_APP_RECEIVE_ID are configured, Feishu notifications are sent to both targets.'],
+  },
   'settings.notification.webhooks': {
     title: 'Enterprise WeChat Webhook',
     summary: 'Configures an Enterprise WeChat group bot webhook for report delivery.',
@@ -1167,7 +1191,7 @@ const settingsHelpEnUS: SettingsHelpMap = {
   'settings.system.WEBUI_PORT': {
     title: 'WebUI Port',
     summary: 'Controls the port the WebUI service listens on.',
-    usage: 'Default is 8000. Use another port in the 1-65535 range when needed.',
+    usage: 'Default is 8081. Use another port in the 1-65535 range when needed.',
     valueNotes: [
       'Docker or cloud access also depends on host port mappings and firewall rules.',
       'Saving from the settings page only writes .env; it does not rebind the running WebUI/API process.',

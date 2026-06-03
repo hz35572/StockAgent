@@ -214,6 +214,14 @@ export const LLM_PROVIDER_TEMPLATE_BY_ID: Record<string, LLMProviderTemplate> = 
   LLM_PROVIDER_TEMPLATES.map((template) => [template.channelId, template]),
 );
 
+export const QUICK_ADD_LLM_PROVIDER_TEMPLATES: LLMProviderTemplate[] = [
+  LLM_PROVIDER_TEMPLATE_BY_ID.dashscope,
+  LLM_PROVIDER_TEMPLATE_BY_ID.deepseek,
+  LLM_PROVIDER_TEMPLATE_BY_ID.siliconflow,
+  LLM_PROVIDER_TEMPLATE_BY_ID.openai,
+  LLM_PROVIDER_TEMPLATE_BY_ID.custom,
+];
+
 export function getProviderTemplate(channelId: string): LLMProviderTemplate | undefined {
   if (!Object.prototype.hasOwnProperty.call(LLM_PROVIDER_TEMPLATE_BY_ID, channelId)) {
     return undefined;

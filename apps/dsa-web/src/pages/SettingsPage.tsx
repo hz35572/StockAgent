@@ -23,7 +23,6 @@ import type { SystemConfigCategory } from '../types/systemConfig';
 const SETTINGS_VISIBLE_CATEGORIES = new Set<SystemConfigCategory>([
   'ai_model',
   'data_source',
-  'notification',
 ]);
 
 const DATA_SOURCE_VISIBLE_KEYS = new Set([
@@ -374,8 +373,6 @@ const SettingsPage: React.FC = () => {
     'ADMIN_AUTH_ENABLED',
   ]);
   const AGENT_HIDDEN_KEYS = new Set<string>();
-  const NOTIFICATION_VISIBLE_KEY_RE = /^(FEISHU_|DINGTALK_)/;
-  const FEISHU_WEBHOOK_KEY_RE = /^FEISHU_WEBHOOK_/;
   const activeItems =
     visibleActiveCategory === 'ai_model'
       ? rawActiveItems.filter((item) => {
@@ -389,8 +386,6 @@ const SettingsPage: React.FC = () => {
       })
       : visibleActiveCategory === 'system'
         ? rawActiveItems.filter((item) => !SYSTEM_HIDDEN_KEYS.has(item.key))
-      : visibleActiveCategory === 'notification'
-        ? rawActiveItems.filter((item) => NOTIFICATION_VISIBLE_KEY_RE.test(item.key) && !FEISHU_WEBHOOK_KEY_RE.test(item.key))
       : visibleActiveCategory === 'data_source'
         ? rawActiveItems.filter((item) => DATA_SOURCE_VISIBLE_KEYS.has(item.key))
       : visibleActiveCategory === 'agent'
@@ -528,9 +523,9 @@ const SettingsPage: React.FC = () => {
   };
 
   const desktopUpdateNotice = getDesktopUpdateNotice(desktopUpdateState);
-  const shouldGuardActiveConfigPanel = visibleActiveCategory === 'notification' || visibleActiveCategory === 'agent';
+  const shouldGuardActiveConfigPanel = visibleActiveCategory === 'agent';
   const shouldShowActiveConfigPanel = visibleActiveCategory !== 'ai_model';
-  const activeConfigPanelErrorTitle = visibleActiveCategory === 'agent' ? 'Agent 设置' : '通知设置';
+  const activeConfigPanelErrorTitle = 'Agent 设置';
   const settingsPanelDiagnosticHint = isDesktopRuntime ? (
     <>
       请查看并提供桌面端日志
@@ -576,7 +571,7 @@ const SettingsPage: React.FC = () => {
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">系统设置</h1>
             <p className="text-xs leading-6 text-muted-text">
-              统一管理模型、数据源与通知渠道。
+              统一管理模型与数据源。
             </p>
           </div>
 

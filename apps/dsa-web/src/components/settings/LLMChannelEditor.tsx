@@ -8,8 +8,8 @@ import { ApiErrorAlert, Badge, Button, InlineAlert, Input, Select, StatusDot, To
 import type { ChannelProtocol } from './llmProviderTemplates';
 import {
   LLM_PROVIDER_CAPABILITY_LABELS,
-  LLM_PROVIDER_TEMPLATES,
   MODEL_PLACEHOLDERS_BY_PROTOCOL,
+  QUICK_ADD_LLM_PROVIDER_TEMPLATES,
   getProviderTemplate,
   isKnownProviderTemplate,
 } from './llmProviderTemplates';
@@ -1178,7 +1178,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
   const [capabilityStates, setCapabilityStates] = useState<Record<string, ChannelCapabilityState>>({});
   const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [addPreset, setAddPreset] = useState('aihubmix');
+  const [addPreset, setAddPreset] = useState('dashscope');
   const addChannelIdRef = useRef(0);
 
   const prevChannelsRef = useRef(channelsFingerprint);
@@ -1700,7 +1700,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
               <Select
                 value={addPreset}
                 onChange={setAddPreset}
-                options={LLM_PROVIDER_TEMPLATES.map((preset) => ({
+                options={QUICK_ADD_LLM_PROVIDER_TEMPLATES.map((preset) => ({
                   value: preset.channelId,
                   label: preset.label,
                 }))}

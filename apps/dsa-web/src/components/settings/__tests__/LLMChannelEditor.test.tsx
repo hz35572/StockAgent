@@ -159,9 +159,34 @@ describe('LLMChannelEditor', () => {
     expect(screen.getByLabelText('模型（逗号分隔）')).toHaveValue('deepseek-v4-flash,deepseek-v4-pro');
   });
 
+  it('only shows the supported presets in the quick-add provider select', () => {
+    render(
+      <LLMChannelEditor
+        items={[]}
+        configVersion="v1"
+        maskToken="******"
+        onSaved={() => {}}
+      />
+    );
+
+    const quickAddSelect = screen.getAllByRole('combobox')[0];
+
+    expect(within(quickAddSelect).getAllByRole('option').map((option) => option.textContent)).toEqual([
+      '选择服务商',
+      '通义千问（Dashscope）',
+      'DeepSeek 官方',
+      '硅基流动（SiliconFlow）',
+      'OpenAI 官方',
+      '自定义渠道',
+    ]);
+    expect(within(quickAddSelect).queryByRole('option', { name: /MiniMax/i })).not.toBeInTheDocument();
+    expect(within(quickAddSelect).queryByRole('option', { name: /火山方舟/i })).not.toBeInTheDocument();
+    expect(within(quickAddSelect).queryByRole('option', { name: /OpenRouter/i })).not.toBeInTheDocument();
+  });
+
   it.each([
-    ['minimax', /MiniMax 官方/i, 'https://api.minimax.io/v1', 'MiniMax-M2.7,MiniMax-M2.7-highspeed'],
-    ['volcengine', /火山方舟/i, 'https://ark.cn-beijing.volces.com/api/v3', 'doubao-seed-1-6-251015,doubao-seed-1-6-thinking-251015'],
+    ['dashscope', /通义千问/i, 'https://dashscope.aliyuncs.com/compatible-mode/v1', 'qwen3.6-plus,qwen3.6-flash'],
+    ['siliconflow', /硅基流动/i, 'https://api.siliconflow.cn/v1', 'deepseek-ai/DeepSeek-V3.2,Qwen/Qwen3-235B-A22B-Thinking-2507'],
   ])('uses %s OpenAI-compatible defaults when adding the official preset', async (preset, buttonName, baseUrl, models) => {
     render(
       <LLMChannelEditor
@@ -300,35 +325,35 @@ describe('LLMChannelEditor', () => {
       />
     );
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'minimax' } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'siliconflow' } });
     fireEvent.click(screen.getByRole('button', { name: '+ 添加渠道' }));
-    await screen.findByRole('button', { name: /MiniMax 官方/i });
+    await screen.findByRole('button', { name: /硅基流动/i });
     fireEvent.click(screen.getByRole('button', { name: '+ 添加渠道' }));
 
-    await screen.findByRole('button', { name: /minimax2/i });
+    await screen.findByRole('button', { name: /siliconflow2/i });
     expect(screen.getAllByLabelText('渠道名称').map((input) => (input as HTMLInputElement).value)).toEqual([
-      'minimax',
-      'minimax2',
+      'siliconflow',
+      'siliconflow2',
     ]);
     expect(screen.getAllByLabelText('Base URL').map((input) => (input as HTMLInputElement).value)).toEqual([
-      'https://api.minimax.io/v1',
-      'https://api.minimax.io/v1',
+      'https://api.siliconflow.cn/v1',
+      'https://api.siliconflow.cn/v1',
     ]);
     expect(screen.getAllByLabelText('模型（逗号分隔）').map((input) => (input as HTMLInputElement).value)).toEqual([
-      'MiniMax-M2.7,MiniMax-M2.7-highspeed',
-      'MiniMax-M2.7,MiniMax-M2.7-highspeed',
+      'deepseek-ai/DeepSeek-V3.2,Qwen/Qwen3-235B-A22B-Thinking-2507',
+      'deepseek-ai/DeepSeek-V3.2,Qwen/Qwen3-235B-A22B-Thinking-2507',
     ]);
-    expect(screen.getAllByRole('link', { name: 'MiniMax OpenAI API' })).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: 'SiliconFlow Models' })).toHaveLength(1);
   });
 
-  it('saves the MiniMax preset into LLM channel env keys', async () => {
+  it('saves the SiliconFlow preset into LLM channel env keys', async () => {
     update.mockResolvedValue({
       success: true,
       configVersion: 'v2',
       appliedCount: 1,
       skippedMaskedCount: 0,
       reloadTriggered: true,
-      updatedKeys: ['LLM_CHANNELS', 'LLM_MINIMAX_PROTOCOL', 'LLM_MINIMAX_BASE_URL', 'LLM_MINIMAX_MODELS'],
+      updatedKeys: ['LLM_CHANNELS', 'LLM_SILICONFLOW_PROTOCOL', 'LLM_SILICONFLOW_BASE_URL', 'LLM_SILICONFLOW_MODELS'],
       warnings: [],
     });
 
@@ -341,9 +366,9 @@ describe('LLMChannelEditor', () => {
       />
     );
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'minimax' } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'siliconflow' } });
     fireEvent.click(screen.getByRole('button', { name: '+ 添加渠道' }));
-    await screen.findByRole('button', { name: /MiniMax 官方/i });
+    await screen.findByRole('button', { name: /硅基流动/i });
     fireEvent.click(screen.getByRole('button', { name: '保存 AI 配置' }));
 
     await waitFor(() => {
@@ -353,10 +378,10 @@ describe('LLMChannelEditor', () => {
     const updatePayload = update.mock.calls[0][0];
     expect(updatePayload.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ key: 'LLM_CHANNELS', value: 'minimax' }),
-        expect.objectContaining({ key: 'LLM_MINIMAX_PROTOCOL', value: 'openai' }),
-        expect.objectContaining({ key: 'LLM_MINIMAX_BASE_URL', value: 'https://api.minimax.io/v1' }),
-        expect.objectContaining({ key: 'LLM_MINIMAX_MODELS', value: 'MiniMax-M2.7,MiniMax-M2.7-highspeed' }),
+        expect.objectContaining({ key: 'LLM_CHANNELS', value: 'siliconflow' }),
+        expect.objectContaining({ key: 'LLM_SILICONFLOW_PROTOCOL', value: 'openai' }),
+        expect.objectContaining({ key: 'LLM_SILICONFLOW_BASE_URL', value: 'https://api.siliconflow.cn/v1' }),
+        expect.objectContaining({ key: 'LLM_SILICONFLOW_MODELS', value: 'deepseek-ai/DeepSeek-V3.2,Qwen/Qwen3-235B-A22B-Thinking-2507' }),
       ]),
     );
   });

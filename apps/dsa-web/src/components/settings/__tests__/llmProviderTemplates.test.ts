@@ -4,12 +4,13 @@ import {
   LLM_PROVIDER_TEMPLATE_BY_ID,
   LLM_PROVIDER_TEMPLATES,
   MODEL_PLACEHOLDERS_BY_PROTOCOL,
+  QUICK_ADD_LLM_PROVIDER_TEMPLATES,
   getProviderTemplate,
   isKnownProviderTemplate,
 } from '../llmProviderTemplates';
 
 describe('llmProviderTemplates', () => {
-  it('keeps provider template order aligned with the existing preset dropdown order', () => {
+  it('keeps full provider template metadata order stable', () => {
     expect(LLM_PROVIDER_TEMPLATES.map((template) => template.channelId)).toEqual([
       'aihubmix',
       'anspire',
@@ -25,6 +26,16 @@ describe('llmProviderTemplates', () => {
       'anthropic',
       'openai',
       'ollama',
+      'custom',
+    ]);
+  });
+
+  it('limits quick-add provider templates to the supported preset dropdown options', () => {
+    expect(QUICK_ADD_LLM_PROVIDER_TEMPLATES.map((template) => template.channelId)).toEqual([
+      'dashscope',
+      'deepseek',
+      'siliconflow',
+      'openai',
       'custom',
     ]);
   });

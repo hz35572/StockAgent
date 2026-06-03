@@ -652,13 +652,13 @@ describe('SettingsPage', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(mockedAnchorClick);
   });
 
-  it('renders only AI model, data source, and notification settings categories', async () => {
+  it('renders only AI model and data source settings categories', async () => {
     render(<SettingsPage />);
 
     expect(await screen.findByRole('heading', { name: '系统设置' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'AI 模型' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '数据源' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '通知渠道' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '通知渠道' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'System' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Base' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Agent' })).not.toBeInTheDocument();
@@ -685,13 +685,15 @@ describe('SettingsPage', () => {
   });
 
   it('redirects hidden active categories to the first visible settings category', () => {
-    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'agent' }));
+    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
 
     render(<SettingsPage />);
 
     expect(setActiveCategory).toHaveBeenCalledWith('ai_model');
     expect(screen.getByText('AI 模型接入')).toBeInTheDocument();
-    expect(screen.queryByText('AGENT_ORCHESTRATOR_TIMEOUT_S')).not.toBeInTheDocument();
+    expect(screen.queryByText('FEISHU_WEBHOOK_URL')).not.toBeInTheDocument();
+    expect(screen.queryByText('DINGTALK_APP_KEY')).not.toBeInTheDocument();
+    expect(settingsPanelErrorBoundary).not.toHaveBeenCalledWith('通知设置');
   });
 
   it('reset button semantic: discards local changes without network request', () => {
@@ -759,41 +761,6 @@ describe('SettingsPage', () => {
 
     expect(screen.getByText('AI 模型接入')).toBeInTheDocument();
     expect(screen.queryByText('当前分类配置项')).not.toBeInTheDocument();
-  });
-
-  it('only renders non-webhook Feishu and DingTalk fields on notification settings page', () => {
-    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
-
-    render(<SettingsPage />);
-
-    expect(screen.queryByText(/通知测试面板/)).not.toBeInTheDocument();
-    expect(screen.getByText('FEISHU_APP_ID')).toBeInTheDocument();
-    expect(screen.getByText('DINGTALK_APP_KEY')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '查看 FEISHU_APP_ID 配置说明' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '查看 DINGTALK_APP_KEY 配置说明' })).not.toBeInTheDocument();
-    expect(screen.queryByText('FEISHU_WEBHOOK_URL')).not.toBeInTheDocument();
-    expect(screen.queryByText('WECHAT_WEBHOOK_URL')).not.toBeInTheDocument();
-    expect(screen.queryByText('PUSHPLUS_TOKEN')).not.toBeInTheDocument();
-    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知设置');
-  });
-
-  it('uses browser and backend logs in settings panel diagnostic hints outside desktop runtime', () => {
-    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
-
-    render(<SettingsPage />);
-
-    expect(screen.getAllByText(/浏览器开发者工具控制台与后端日志/)).toHaveLength(1);
-    expect(screen.queryByText('desktop.log')).not.toBeInTheDocument();
-  });
-
-  it('uses desktop log in settings panel diagnostic hints during desktop runtime', () => {
-    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
-    (window as { dsaDesktop?: unknown }).dsaDesktop = createDesktopRuntime();
-
-    render(<SettingsPage />);
-
-    expect(screen.getAllByText('desktop.log')).toHaveLength(1);
-    expect(screen.queryByText(/浏览器开发者工具控制台与后端日志/)).not.toBeInTheDocument();
   });
 
   it('keeps env backup and desktop update controls hidden with system settings', () => {
