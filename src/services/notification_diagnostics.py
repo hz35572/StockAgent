@@ -88,7 +88,13 @@ CHANNEL_SPECS: Tuple[NotificationChannelSpec, ...] = (
         display_name=ChannelDetector.get_channel_name(NotificationChannel.FEISHU),
         kind="configured",
         minimal_keys=("FEISHU_WEBHOOK_URL",),
-        advanced_keys=("FEISHU_WEBHOOK_SECRET", "FEISHU_WEBHOOK_KEYWORD"),
+        alternative_minimal_keys=(("FEISHU_APP_ID", "FEISHU_APP_SECRET", "FEISHU_APP_RECEIVE_ID"),),
+        advanced_keys=(
+            "FEISHU_WEBHOOK_SECRET",
+            "FEISHU_WEBHOOK_KEYWORD",
+            "FEISHU_APP_RECEIVE_ID_TYPE",
+        ),
+        note="Webhook URL enables group push; App ID + Secret + Receive ID enables app-bot direct messages.",
     ),
     NotificationChannelSpec(
         channel=NotificationChannel.TELEGRAM.value,
