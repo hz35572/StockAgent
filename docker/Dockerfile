@@ -81,7 +81,8 @@ EXPOSE 8081
 
 # 健康检查（FastAPI 模式）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8081/api/health || curl -f http://localhost:8081/health \
+    CMD service_port="${PORT:-${WEBUI_PORT:-${API_PORT:-8081}}}" \
+    && curl -f "http://localhost:${service_port}/api/health" || curl -f "http://localhost:${service_port}/health" \
     || python -c "import sys; sys.exit(0)"
 
 # 启动入口先修复 bind mount 目录权限，再降权为 dsa 执行应用；

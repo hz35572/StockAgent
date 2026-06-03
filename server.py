@@ -19,8 +19,9 @@ Daily Stock Analysis - FastAPI 后端服务入口
 """
 
 import logging
+import os
 
-from src.config import setup_env, get_config
+from src.config import parse_env_int, setup_env, get_config
 from src.logging_config import setup_logging
 
 # 初始化环境变量与日志
@@ -46,9 +47,18 @@ __all__ = ['app']
 if __name__ == "__main__":
     import uvicorn
 
+    port_env_name = "PORT" if os.getenv("PORT") else "WEBUI_PORT"
+    port = parse_env_int(
+        os.getenv("PORT") or os.getenv("WEBUI_PORT"),
+        8081,
+        field_name=port_env_name,
+        minimum=1,
+        maximum=65535,
+    )
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8081,
+        port=port,
         reload=True,
     )

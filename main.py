@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from dotenv import dotenv_values
-from src.config import setup_env
+from src.config import parse_env_int, setup_env
 
 _INITIAL_PROCESS_ENV = dict(os.environ)
 setup_env()
@@ -59,6 +59,22 @@ from src.logging_config import setup_logging
 
 logger = logging.getLogger(__name__)
 _RUNTIME_ENV_FILE_KEYS = set()
+_DEFAULT_API_PORT = 8081
+
+
+def _resolve_default_api_port() -> int:
+    """Resolve the service port from runtime env, preserving 8081 locally."""
+    for field_name in ("PORT", "WEBUI_PORT"):
+        value = os.getenv(field_name)
+        if value and str(value).strip():
+            return parse_env_int(
+                value,
+                _DEFAULT_API_PORT,
+                field_name=field_name,
+                minimum=1,
+                maximum=65535,
+            )
+    return _DEFAULT_API_PORT
 
 
 def _get_active_env_path() -> Path:
@@ -338,8 +354,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         '--port',
         type=int,
-        default=8081,
-        help='FastAPI 服务端口（默认 8081）'
+        default=_resolve_default_api_port(),
+        help='FastAPI 服务端口（默认 ${PORT:-8081}，兼容 WEBUI_PORT）'
     )
 
     parser.add_argument(
@@ -847,12 +863,10 @@ def main() -> int:
     # === 启动 Web 服务 (如果启用) ===
     start_serve = (args.serve or args.serve_only) and os.getenv("GITHUB_ACTIONS") != "true"
 
-    # 兼容旧版 WEBUI_HOST/WEBUI_PORT：如果用户未通过 --host/--port 指定，则使用旧变量
+    # 兼容旧版 WEBUI_HOST；端口默认值已在参数解析阶段按 PORT/WEBUI_PORT 解析。
     if start_serve:
         if args.host == '0.0.0.0' and os.getenv('WEBUI_HOST'):
             args.host = os.getenv('WEBUI_HOST')
-        if args.port == 8081 and os.getenv('WEBUI_PORT'):
-            args.port = int(os.getenv('WEBUI_PORT'))
 
     bot_clients_started = False
     if start_serve:
