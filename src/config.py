@@ -735,6 +735,8 @@ class Config:
     feishu_webhook_url: Optional[str] = None
     feishu_webhook_secret: Optional[str] = None  # 自定义机器人签名密钥（可选）
     feishu_webhook_keyword: Optional[str] = None  # 自定义机器人关键词（可选）
+    feishu_app_receive_id: Optional[str] = None  # 飞书应用机器人主动推送的接收者 ID
+    feishu_app_receive_id_type: str = "open_id"  # open_id/user_id/union_id/email/chat_id
     
     # Telegram 配置（需要同时配置 Bot Token 和 Chat ID）
     telegram_bot_token: Optional[str] = None  # Bot Token（@BotFather 获取）
@@ -1407,6 +1409,8 @@ class Config:
             stock_list=stock_list,
             feishu_app_id=os.getenv('FEISHU_APP_ID'),
             feishu_app_secret=os.getenv('FEISHU_APP_SECRET'),
+            feishu_app_receive_id=os.getenv('FEISHU_APP_RECEIVE_ID'),
+            feishu_app_receive_id_type=os.getenv('FEISHU_APP_RECEIVE_ID_TYPE', 'open_id'),
             feishu_folder_token=os.getenv('FEISHU_FOLDER_TOKEN'),
             tushare_token=os.getenv('TUSHARE_TOKEN'),
             tickflow_api_key=os.getenv('TICKFLOW_API_KEY'),
@@ -2555,6 +2559,7 @@ class Config:
         has_notification = bool(
             self.wechat_webhook_url
             or self.feishu_webhook_url
+            or (self.feishu_app_id and self.feishu_app_secret and self.feishu_app_receive_id)
             or (self.telegram_bot_token and self.telegram_chat_id)
             or (self.email_sender and self.email_password)
             or (self.pushover_user_key and self.pushover_api_token)
@@ -2649,26 +2654,44 @@ class Config:
         has_feishu_app_id = bool((self.feishu_app_id or "").strip())
         has_feishu_app_secret = bool((self.feishu_app_secret or "").strip())
         has_feishu_app_credentials = has_feishu_app_id or has_feishu_app_secret
+        has_feishu_app_receive_id = bool((self.feishu_app_receive_id or "").strip())
         has_feishu_doc_token = bool((self.feishu_folder_token or "").strip())
         has_feishu_full_cloud_doc_credentials = (
             has_feishu_app_id
             and has_feishu_app_secret
             and has_feishu_doc_token
         )
+        has_feishu_personal_push_credentials = (
+            has_feishu_app_id
+            and has_feishu_app_secret
+            and has_feishu_app_receive_id
+        )
         if (
             has_feishu_app_credentials
             and not has_feishu_full_cloud_doc_credentials
             and not self.feishu_webhook_url
+            and not has_feishu_personal_push_credentials
             and not (self.feishu_stream_enabled and has_feishu_app_id and has_feishu_app_secret)
         ):
             issues.append(ConfigIssue(
                 severity="warning",
                 message=(
                     "仅配置 FEISHU_APP_ID / FEISHU_APP_SECRET 不会开启飞书群 Webhook 推送；"
-                    "如需群消息通知，请配置 FEISHU_WEBHOOK_URL。若要使用应用机器人，请同时开启 "
+                    "如需群消息通知，请配置 FEISHU_WEBHOOK_URL。若要推送到个人，请配置 "
+                    "FEISHU_APP_RECEIVE_ID。若要使用应用机器人对话，请同时开启 "
                     "FEISHU_STREAM_ENABLED 并完成应用发布与权限配置。"
                 ),
-                field="FEISHU_WEBHOOK_URL",
+                field="FEISHU_APP_RECEIVE_ID",
+            ))
+
+        valid_feishu_receive_id_types = {"open_id", "user_id", "union_id", "email", "chat_id"}
+        if self.feishu_app_receive_id_type not in valid_feishu_receive_id_types:
+            issues.append(ConfigIssue(
+                severity="error",
+                message=(
+                    "FEISHU_APP_RECEIVE_ID_TYPE 必须是 open_id/user_id/union_id/email/chat_id 之一"
+                ),
+                field="FEISHU_APP_RECEIVE_ID_TYPE",
             ))
 
         # --- Deprecated field migration hints ---

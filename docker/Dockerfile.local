@@ -1,0 +1,43 @@
+# Local overlay image for development environments that cannot reach Docker Hub.
+# It reuses the published runtime image and only replaces source files from this checkout.
+
+ARG BASE_IMAGE=ghcr.io/zhulinsen/daily_stock_analysis:latest
+FROM ${BASE_IMAGE}
+
+USER root
+WORKDIR /app
+
+RUN cp -a /app/api/v1/endpoints /tmp/dsa-base-endpoints
+
+COPY . /tmp/dsa-local-src/
+
+RUN set -eux; \
+    for path in api bot data_provider src strategies templates; do \
+        if [ -e "/tmp/dsa-local-src/${path}" ]; then \
+            mkdir -p "/app/${path}"; \
+            cp -a "/tmp/dsa-local-src/${path}/." "/app/${path}/"; \
+        fi; \
+    done; \
+    for file in /tmp/dsa-local-src/*.py; do \
+        if [ -e "$file" ]; then \
+            cp -a "$file" /app/; \
+        fi; \
+    done; \
+    if [ -d /tmp/dsa-local-src/static ]; then \
+        rm -rf /app/static; \
+        cp -a /tmp/dsa-local-src/static /app/static; \
+    fi; \
+    if [ -f /app/src/notification_sender/gotify_sender.py ] && ! grep -q "GotifySender" /app/src/notification_sender/__init__.py; then \
+        printf '%s\n' \
+            'from .gotify_sender import GotifySender, resolve_gotify_message_endpoint' \
+            'from .ntfy_sender import NtfySender, resolve_ntfy_endpoint' \
+            >> /app/src/notification_sender/__init__.py; \
+    fi; \
+    for endpoint in /app/api/v1/endpoints/*.py; do \
+        name="$(basename "$endpoint")"; \
+        if [ "$name" != "__init__.py" ] && ! grep -q "router = APIRouter" "$endpoint" && [ -f "/tmp/dsa-base-endpoints/${name}" ]; then \
+            cp -a "/tmp/dsa-base-endpoints/${name}" "$endpoint"; \
+        fi; \
+    done; \
+    rm -rf /tmp/dsa-local-src; \
+    chown -R dsa:dsa /app

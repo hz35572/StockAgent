@@ -351,7 +351,14 @@ class NotificationService(
         if getattr(config, "wechat_webhook_url", None):
             channels.append(NotificationChannel.WECHAT)
 
-        if getattr(config, "feishu_webhook_url", None):
+        if (
+            getattr(config, "feishu_webhook_url", None)
+            or (
+                getattr(config, "feishu_app_id", None)
+                and getattr(config, "feishu_app_secret", None)
+                and getattr(config, "feishu_app_receive_id", None)
+            )
+        ):
             channels.append(NotificationChannel.FEISHU)
 
         if (
@@ -626,6 +633,43 @@ class NotificationService(
             return False
         except Exception as e:
             logger.error(f"飞书 Stream 回复异常: {e}")
+            return False
+
+    def _send_feishu_app_direct(self, content: str) -> bool:
+        """
+        通过飞书应用机器人主动发送消息到个人或指定接收者。
+
+        该路径使用 FEISHU_APP_ID / FEISHU_APP_SECRET + FEISHU_APP_RECEIVE_ID，
+        适用于不想建群 Webhook、只希望给个人私聊推送报告的场景。
+        """
+        try:
+            from bot.platforms.feishu_stream import FeishuReplyClient, FEISHU_SDK_AVAILABLE
+            if not FEISHU_SDK_AVAILABLE:
+                logger.warning("飞书 SDK 不可用，无法发送应用机器人个人推送")
+                return False
+
+            app_id = getattr(self._config, "feishu_app_id", None)
+            app_secret = getattr(self._config, "feishu_app_secret", None)
+            receive_id = getattr(self._config, "feishu_app_receive_id", None)
+            receive_id_type = (
+                getattr(self._config, "feishu_app_receive_id_type", "open_id") or "open_id"
+            ).strip()
+
+            if not app_id or not app_secret or not receive_id:
+                logger.warning("飞书应用个人推送需要配置 FEISHU_APP_ID、FEISHU_APP_SECRET 和 FEISHU_APP_RECEIVE_ID")
+                return False
+
+            reply_client = FeishuReplyClient(app_id, app_secret)
+            return reply_client.send_to_chat(
+                receive_id,
+                content,
+                receive_id_type=receive_id_type,
+            )
+        except ImportError as e:
+            logger.error(f"导入飞书 Stream 模块失败: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"飞书应用个人推送异常: {e}")
             return False
 
     def _send_feishu_stream_chunked(
@@ -2034,7 +2078,18 @@ class NotificationService(
                 return self._send_wechat_image(image_bytes)
             return self.send_to_wechat(content)
         if channel == NotificationChannel.FEISHU:
-            return self.send_to_feishu(content)
+            success = True
+            attempted = False
+            if getattr(self._config, "feishu_webhook_url", None):
+                attempted = True
+                success = self.send_to_feishu(content) and success
+            if getattr(self._config, "feishu_app_receive_id", None):
+                attempted = True
+                success = self._send_feishu_app_direct(content) and success
+            if not attempted:
+                logger.warning("飞书通知渠道未配置可用的 Webhook 或个人接收 ID")
+                return False
+            return success
         if channel == NotificationChannel.TELEGRAM:
             if use_image:
                 return self._send_telegram_photo(image_bytes)

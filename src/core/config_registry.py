@@ -1415,6 +1415,46 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "validation": {},
         "display_order": 16,
     },
+    "FEISHU_APP_RECEIVE_ID": {
+        "title": "Feishu App Receive ID",
+        "description": "Target receive ID for Feishu app bot direct messages. Use a personal open_id/user_id/email to push reports to yourself instead of a group webhook.",
+        "category": "notification",
+        "data_type": "string",
+        "ui_control": "password",
+        "is_sensitive": True,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": None,
+        "options": [],
+        "validation": {},
+        "display_order": 17,
+        "help_key": "settings.notification.FEISHU_APP_DIRECT",
+        "examples": [
+            "FEISHU_APP_RECEIVE_ID=ou_xxxxx",
+            "FEISHU_APP_RECEIVE_ID_TYPE=open_id",
+        ],
+        "docs": [
+            {
+                "label": "完整指南：飞书通知配置",
+                "href": "https://github.com/ZhuLinsen/daily_stock_analysis/blob/main/docs/full-guide.md#飞书",
+            },
+        ],
+    },
+    "FEISHU_APP_RECEIVE_ID_TYPE": {
+        "title": "Feishu App Receive ID Type",
+        "description": "Receive ID type for Feishu app bot direct messages.",
+        "category": "notification",
+        "data_type": "string",
+        "ui_control": "select",
+        "is_sensitive": False,
+        "is_required": False,
+        "is_editable": True,
+        "default_value": "open_id",
+        "options": ["open_id", "user_id", "union_id", "email", "chat_id"],
+        "validation": {},
+        "display_order": 18,
+        "help_key": "settings.notification.FEISHU_APP_DIRECT",
+    },
     # ------------------------------------------------------------------
     # Notification – Telegram
     # ------------------------------------------------------------------

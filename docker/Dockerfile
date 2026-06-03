@@ -89,4 +89,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # 默认命令（可被覆盖）
-CMD ["python", "main.py", "--schedule"]
+# Railway 需要同时启动 API 服务（健康检查 /api/health 依赖它）
+CMD ["python", "main.py", "--serve"]

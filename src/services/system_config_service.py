@@ -129,6 +129,10 @@ class SystemConfigService:
         "FEISHU_WEBHOOK_URL": ("feishu_webhook_url", "string"),
         "FEISHU_WEBHOOK_SECRET": ("feishu_webhook_secret", "string"),
         "FEISHU_WEBHOOK_KEYWORD": ("feishu_webhook_keyword", "string"),
+        "FEISHU_APP_ID": ("feishu_app_id", "string"),
+        "FEISHU_APP_SECRET": ("feishu_app_secret", "string"),
+        "FEISHU_APP_RECEIVE_ID": ("feishu_app_receive_id", "string"),
+        "FEISHU_APP_RECEIVE_ID_TYPE": ("feishu_app_receive_id_type", "string"),
         "FEISHU_MAX_BYTES": ("feishu_max_bytes", "int"),
         "TELEGRAM_BOT_TOKEN": ("telegram_bot_token", "string"),
         "TELEGRAM_CHAT_ID": ("telegram_chat_id", "string"),
@@ -163,7 +167,7 @@ class SystemConfigService:
     }
     _NOTIFICATION_REQUIRED_KEY_GROUPS: Dict[str, Tuple[Tuple[str, ...], ...]] = {
         "wechat": (("WECHAT_WEBHOOK_URL",),),
-        "feishu": (("FEISHU_WEBHOOK_URL",),),
+        "feishu": (("FEISHU_WEBHOOK_URL",), ("FEISHU_APP_ID", "FEISHU_APP_SECRET", "FEISHU_APP_RECEIVE_ID")),
         "telegram": (("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"),),
         "email": (("EMAIL_SENDER", "EMAIL_PASSWORD"),),
         "pushover": (("PUSHOVER_USER_KEY", "PUSHOVER_API_TOKEN"),),
@@ -178,7 +182,7 @@ class SystemConfigService:
     }
     _NOTIFICATION_TEST_TARGET_KEYS: Dict[str, Tuple[str, ...]] = {
         "wechat": ("WECHAT_WEBHOOK_URL",),
-        "feishu": ("FEISHU_WEBHOOK_URL",),
+        "feishu": ("FEISHU_WEBHOOK_URL", "FEISHU_APP_RECEIVE_ID"),
         "telegram": ("TELEGRAM_BOT_TOKEN",),
         "email": ("EMAIL_RECEIVERS", "EMAIL_SENDER"),
         "pushover": ("PUSHOVER_USER_KEY",),
@@ -1986,7 +1990,6 @@ class SystemConfigService:
             CustomWebhookSender,
             DiscordSender,
             EmailSender,
-            FeishuSender,
             GotifySender,
             NtfySender,
             PushoverSender,
@@ -2028,7 +2031,7 @@ class SystemConfigService:
 
         dispatch = {
             "wechat": lambda: WechatSender(config).send_to_wechat(titled_content, timeout_seconds=timeout_seconds),
-            "feishu": lambda: FeishuSender(config).send_to_feishu(titled_content, timeout_seconds=timeout_seconds),
+            "feishu": lambda: self._send_feishu_notification_test(config, titled_content, timeout_seconds=timeout_seconds),
             "telegram": lambda: TelegramSender(config).send_to_telegram(titled_content, timeout_seconds=timeout_seconds),
             "email": lambda: EmailSender(config).send_to_email(content, subject=title, timeout_seconds=timeout_seconds),
             "pushover": lambda: PushoverSender(config).send_to_pushover(content, title=title, timeout_seconds=timeout_seconds),
@@ -2062,6 +2065,48 @@ class SystemConfigService:
             latency_ms=latency_ms,
             attempts=[attempt],
         )
+
+    @staticmethod
+    def _send_feishu_notification_test(
+        config: Config,
+        content: str,
+        *,
+        timeout_seconds: float,
+    ) -> bool:
+        if getattr(config, "feishu_webhook_url", None):
+            from src.notification_sender import FeishuSender
+
+            return FeishuSender(config).send_to_feishu(
+                content,
+                timeout_seconds=timeout_seconds,
+            )
+
+        receive_id = getattr(config, "feishu_app_receive_id", None)
+        if not receive_id:
+            return False
+
+        try:
+            from bot.platforms.feishu_stream import FeishuReplyClient, FEISHU_SDK_AVAILABLE
+            if not FEISHU_SDK_AVAILABLE:
+                logger.warning("飞书 SDK 不可用，无法发送应用机器人个人测试消息")
+                return False
+
+            app_id = getattr(config, "feishu_app_id", None)
+            app_secret = getattr(config, "feishu_app_secret", None)
+            receive_id_type = (
+                getattr(config, "feishu_app_receive_id_type", "open_id") or "open_id"
+            ).strip()
+            if not app_id or not app_secret:
+                return False
+
+            return FeishuReplyClient(app_id, app_secret).send_to_chat(
+                receive_id,
+                content,
+                receive_id_type=receive_id_type,
+            )
+        except Exception as exc:
+            logger.error("飞书应用个人测试消息发送失败: %s", exc)
+            return False
 
     @staticmethod
     def _build_notification_test_content(title: str, content: str) -> str:
@@ -3157,6 +3202,8 @@ class SystemConfigService:
             "FEISHU_WEBHOOK_URL",
             "FEISHU_WEBHOOK_SECRET",
             "FEISHU_WEBHOOK_KEYWORD",
+            "FEISHU_APP_RECEIVE_ID",
+            "FEISHU_APP_RECEIVE_ID_TYPE",
             "FEISHU_STREAM_ENABLED",
             "FEISHU_FOLDER_TOKEN",
         }
@@ -3164,6 +3211,7 @@ class SystemConfigService:
         has_feishu_app_secret = bool((effective_map.get("FEISHU_APP_SECRET") or "").strip())
         has_feishu_app_credentials = has_feishu_app_id or has_feishu_app_secret
         has_feishu_webhook = bool((effective_map.get("FEISHU_WEBHOOK_URL") or "").strip())
+        has_feishu_app_receive_id = bool((effective_map.get("FEISHU_APP_RECEIVE_ID") or "").strip())
         has_feishu_folder_token = bool((effective_map.get("FEISHU_FOLDER_TOKEN") or "").strip())
         has_feishu_full_cloud_doc_credentials = (
             has_feishu_app_id
@@ -3182,20 +3230,22 @@ class SystemConfigService:
             has_feishu_app_credentials
             and not has_feishu_full_cloud_doc_credentials
             and not has_feishu_webhook
+            and not (has_feishu_app_id and has_feishu_app_secret and has_feishu_app_receive_id)
             and not (feishu_stream_enabled and has_feishu_app_id and has_feishu_app_secret)
             and (updated_keys & feishu_relevant_keys)
         ):
             issues.append(
                 {
-                    "key": "FEISHU_WEBHOOK_URL",
+                    "key": "FEISHU_APP_RECEIVE_ID",
                     "code": "feishu_mode_mismatch",
                     "message": (
                         "仅配置 FEISHU_APP_ID / FEISHU_APP_SECRET 不会开启飞书群 Webhook 推送；"
-                        "如需通知推送请填写 FEISHU_WEBHOOK_URL，若要使用应用机器人请同时开启 "
+                        "如需群消息通知请填写 FEISHU_WEBHOOK_URL；如需推送到个人，请填写 "
+                        "FEISHU_APP_RECEIVE_ID。若要使用应用机器人对话，请同时开启 "
                         "FEISHU_STREAM_ENABLED 并完成应用发布与权限配置。"
                     ),
                     "severity": "warning",
-                    "expected": "FEISHU_WEBHOOK_URL or FEISHU_STREAM_ENABLED=true",
+                    "expected": "FEISHU_WEBHOOK_URL or FEISHU_APP_RECEIVE_ID or FEISHU_STREAM_ENABLED=true",
                     "actual": "app credentials only",
                 }
             )

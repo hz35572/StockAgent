@@ -19,7 +19,7 @@ Stock Agent的目标是把“数据获取 -> 技术分析 -> 新闻检索 -> AI 
 | 模块 | 说明 |
 | --- | --- |
 | 多市场数据聚合 | 支持 A 股、港股、美股、ETF，接入 efinance、AkShare、Tushare、yfinance、Longbridge、TickFlow 等数据源。 |
-| AI 分析报告 | 通过 LiteLLM 统一接入 OpenAI compatible、DeepSeek、Gemini、Anthropic、Ollama 等模型生态，输出趋势、评分、风险、催化因素和操作检查清单。 |
+| AI 分析报告 | 通过 LiteLLM 统一接入 OpenAI compatible、DeepSeek、通义千问等模型生态，输出趋势、评分、风险、催化因素和操作检查清单。 |
 | 大盘复盘 | 支持独立运行市场复盘，汇总指数、热点、宏观线索和市场情绪。 |
 | 新闻与舆情 | 支持 Tavily、SerpAPI 等搜索能力，为个股分析补充事件和新闻上下文。 |
 | Web 工作台 | React + Vite 前端提供手动分析、历史报告、配置管理、Markdown 渲染、主题切换等能力。 |

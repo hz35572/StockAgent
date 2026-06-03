@@ -1,0 +1,36 @@
+name: daily-stock-analysis
+
+x-common: &common
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile.local
+    args:
+      BASE_IMAGE: ghcr.io/zhulinsen/daily_stock_analysis:latest
+  restart: unless-stopped
+  env_file:
+    - ../.env
+  volumes:
+    - ../data:/app/data
+    - ../logs:/app/logs
+    - ../reports:/app/reports
+    - ../strategies:/app/strategies:ro
+  environment:
+    - TZ=Asia/Shanghai
+    - WEBUI_HOST=0.0.0.0
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  analyzer:
+    <<: *common
+    container_name: stock-analyzer-local
+
+  server:
+    <<: *common
+    container_name: stock-server-local
+    command: ["python", "main.py", "--serve-only", "--host", "0.0.0.0", "--port", "${API_PORT:-8081}"]
+    ports:
+      - "${API_PORT:-8081}:${API_PORT:-8081}"

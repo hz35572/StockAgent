@@ -97,6 +97,7 @@
 |-------------|------|
 | `WECHAT_WEBHOOK_URL` | 企業微信機器人 |
 | `FEISHU_WEBHOOK_URL` | 飛書機器人 |
+| `FEISHU_APP_ID` + `FEISHU_APP_SECRET` + `FEISHU_APP_RECEIVE_ID` | 飛書應用機器人個人推送 |
 | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` | Telegram |
 | `DISCORD_WEBHOOK_URL` | Discord Webhook |
 | `SLACK_BOT_TOKEN` + `SLACK_CHANNEL_ID` | Slack Bot |
@@ -216,7 +217,7 @@ python main.py --webui
 python main.py --webui-only
 ```
 
-訪問 `http://127.0.0.1:8000` 即可使用。認證、智能匯入、搜尋補全、歷史報告複製、雲端伺服器訪問等細節見 [本地 WebUI 管理介面](./full-guide.md#本地-webui-管理界面)。
+訪問 `http://127.0.0.1:8081` 即可使用。認證、智能匯入、搜尋補全、歷史報告複製、雲端伺服器訪問等細節見 [本地 WebUI 管理介面](./full-guide.md#本地-webui-管理界面)。
 
 ## 🤖 Agent 策略問股
 
