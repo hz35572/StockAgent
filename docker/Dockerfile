@@ -24,6 +24,7 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 安装系统依赖（wkhtmltopdf 含 wkhtmltoimage，用于 Markdown 转图片 Issue #289）
+# 额外安装 Rust 工具链，供 longbridge 等含 Rust 扩展的包编译使用
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
@@ -34,6 +35,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装 Rust 工具链（longbridge 构建需要）
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # 创建非 root 用户 (UID 1000)
 RUN groupadd -g 1000 dsa && \
@@ -66,17 +71,17 @@ ENV LOG_DIR=/app/logs
 ENV DATABASE_PATH=/app/data/stock_analysis.db
 # Web/API service
 ENV WEBUI_HOST=0.0.0.0
-ENV API_PORT=8000
+ENV API_PORT=8081
 
 # 暴露 API 端口
-EXPOSE 8000
+EXPOSE 8081
 
 # 数据卷（持久化数据）
 VOLUME ["/app/data", "/app/logs", "/app/reports"]
 
 # 健康检查（FastAPI 模式）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || curl -f http://localhost:8000/health \
+    CMD curl -f http://localhost:8081/api/health || curl -f http://localhost:8081/health \
     || python -c "import sys; sys.exit(0)"
 
 # 启动入口先修复 bind mount 目录权限，再降权为 dsa 执行应用；
