@@ -240,6 +240,30 @@ class TestEmailSender(unittest.TestCase):
         self.assertEqual(msg["To"], ", ".join(cfg.email_receivers or [cfg.email_sender]))
         server.quit.assert_called_once()
 
+    def test_send_email_with_real_smtp_when_enabled(self):
+        if os.getenv("RUN_REAL_EMAIL_TEST") != "1":
+            self.skipTest("Set RUN_REAL_EMAIL_TEST=1 to run the real SMTP email test")
+
+        EmailSender = _load_email_sender_class()
+        cfg = _email_config_from_env()
+        if not cfg.email_sender or not cfg.email_password:
+            self.skipTest("EMAIL_SENDER / EMAIL_PASSWORD not configured in environment")
+
+        receiver_override = os.getenv("REAL_EMAIL_TEST_RECEIVER", "").strip()
+        receivers = [receiver_override] if receiver_override else (cfg.email_receivers or [cfg.email_sender])
+        sender = EmailSender(cfg)
+        subject = "real email sender smoke test"
+        content = "This is a real SMTP smoke test from tests/test_notification_sender.py."
+
+        result = sender.send_to_email(
+            content,
+            subject=subject,
+            receivers=receivers,
+            timeout_seconds=30,
+        )
+
+        self.assertTrue(result)
+
 
 if __name__ == "__main__":
     unittest.main()
