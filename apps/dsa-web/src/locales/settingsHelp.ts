@@ -358,7 +358,7 @@ const settingsHelpZhCN: SettingsHelpMap = {
   'settings.system.WEBUI_PORT': {
     title: 'WebUI 端口',
     summary: '控制 WebUI 服务监听的端口。',
-    usage: '本地默认 8081；如端口冲突可改为其他 1-65535 范围内端口。',
+    usage: '本地默认 80；如端口冲突可改为其他 1-65535 范围内端口。',
     valueNotes: [
       'Docker 或云服务器访问还取决于宿主机端口映射和安全组。',
       '设置页保存只会写入 .env，不会让当前 WebUI/API 进程重新绑定端口。',
@@ -1191,7 +1191,7 @@ const settingsHelpEnUS: SettingsHelpMap = {
   'settings.system.WEBUI_PORT': {
     title: 'WebUI Port',
     summary: 'Controls the port the WebUI service listens on.',
-    usage: 'Default is 8081. Use another port in the 1-65535 range when needed.',
+    usage: 'Default is 80. Use another port in the 1-65535 range when needed.',
     valueNotes: [
       'Docker or cloud access also depends on host port mappings and firewall rules.',
       'Saving from the settings page only writes .env; it does not rebind the running WebUI/API process.',

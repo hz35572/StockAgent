@@ -93,18 +93,20 @@ OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
 ### 3. 使用 Docker 启动 Web 服务
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml up -d --build server
+docker-compose -f ./docker/docker-compose.yml up -d --build server
 ```
+
+该命令使用 `docker/Dockerfile` 从当前源码构建镜像，不依赖 `ghcr.io/zhulinsen/daily_stock_analysis` 预构建镜像。
 
 启动后访问：
 
-- Web 服务：`http://localhost:8081`
-- OpenAPI 文档：`http://localhost:8081/docs`
+- Web 服务：`http://localhost`
+- OpenAPI 文档：`http://localhost/docs`
 
 ### 4. 查看服务状态
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml ps
+docker-compose -f ./docker/docker-compose.yml ps
 ```
 
 ### 5. 查看日志
@@ -112,13 +114,13 @@ docker-compose -f ./docker/docker-compose.local.yml ps
 持续查看 Web 服务日志：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml logs -f server
+docker-compose -f ./docker/docker-compose.yml logs -f server
 ```
 
 只查看最近 100 行日志：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml logs --tail 100 server
+docker-compose -f ./docker/docker-compose.yml logs --tail 100 server
 ```
 
 也可以直接查看容器日志：
@@ -132,13 +134,13 @@ docker logs -f stock-server-local
 停止并删除本次 Compose 创建的容器和网络：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml down
+docker-compose -f ./docker/docker-compose.yml down
 ```
 
 仅暂停 Web 服务容器：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml stop server
+docker-compose -f ./docker/docker-compose.yml stop server
 ```
 
 ## 使用方法
@@ -149,43 +151,43 @@ docker-compose -f ./docker/docker-compose.local.yml stop server
 启动 Web 服务：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml up -d --build server
+docker-compose -f ./docker/docker-compose.yml up -d --build server
 ```
 
 启动定时分析服务：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml up -d --build analyzer
+docker-compose -f ./docker/docker-compose.yml up -d --build analyzer
 ```
 
 同时启动 Web 服务和定时分析服务：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml up -d --build
+docker-compose -f ./docker/docker-compose.yml up -d --build
 ```
 
 重启 Web 服务：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml restart server
+docker-compose -f ./docker/docker-compose.yml restart server
 ```
 
 查看运行状态：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml ps
+docker-compose -f ./docker/docker-compose.yml ps
 ```
 
 查看 Web 服务日志：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml logs -f server
+docker-compose -f ./docker/docker-compose.yml logs -f server
 ```
 
 停止所有服务：
 
 ```powershell
-docker-compose -f ./docker/docker-compose.local.yml down
+docker-compose -f ./docker/docker-compose.yml down
 ```
 
 ### Web 前端开发

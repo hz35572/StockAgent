@@ -11,7 +11,7 @@ Daily Stock Analysis - FastAPI 后端服务入口
 4. 托管前端静态文件（生产模式）
 
 启动方式：
-    uvicorn server:app --reload --host 0.0.0.0 --port 8081
+    uvicorn server:app --reload --host 0.0.0.0 --port 80
     
     或使用 main.py:
     python main.py --serve-only      # 仅启动 API 服务
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     port_env_name = "PORT" if os.getenv("PORT") else "WEBUI_PORT"
     port = parse_env_int(
         os.getenv("PORT") or os.getenv("WEBUI_PORT"),
-        8081,
+        80,
         field_name=port_env_name,
         minimum=1,
         maximum=65535,

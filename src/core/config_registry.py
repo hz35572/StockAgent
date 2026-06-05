@@ -2492,13 +2492,13 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "is_sensitive": False,
         "is_required": False,
         "is_editable": True,
-        "default_value": "8000",
+        "default_value": "80",
         "options": [],
         "validation": {"min": 1, "max": 65535},
         "display_order": 40,
         "help_key": "settings.system.WEBUI_PORT",
         "examples": [
-            "WEBUI_PORT=8000",
+            "WEBUI_PORT=80",
             "WEBUI_PORT=18000",
         ],
         "docs": [

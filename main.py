@@ -59,11 +59,11 @@ from src.logging_config import setup_logging
 
 logger = logging.getLogger(__name__)
 _RUNTIME_ENV_FILE_KEYS = set()
-_DEFAULT_API_PORT = 8081
+_DEFAULT_API_PORT = 80
 
 
 def _resolve_default_api_port() -> int:
-    """Resolve the service port from runtime env, preserving 8081 locally."""
+    """Resolve the service port from runtime env, preserving port 80 locally."""
     for field_name in ("PORT", "WEBUI_PORT"):
         value = os.getenv(field_name)
         if value and str(value).strip():
@@ -355,7 +355,7 @@ def parse_arguments() -> argparse.Namespace:
         '--port',
         type=int,
         default=_resolve_default_api_port(),
-        help='FastAPI 服务端口（默认 ${PORT:-8081}，兼容 WEBUI_PORT）'
+        help='FastAPI 服务端口（默认 ${PORT:-80}，兼容 WEBUI_PORT）'
     )
 
     parser.add_argument(

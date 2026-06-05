@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
     gosu \
+    libcap2-bin \
     wkhtmltopdf \
     fontconfig \
     libjpeg62-turbo \
@@ -49,6 +50,9 @@ COPY requirements.txt .
 
 # 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Allow the non-root app user to bind the default HTTP port 80.
+RUN setcap 'cap_net_bind_service=+ep' "$(readlink -f "$(command -v python)")"
 
 # 复制应用代码
 COPY *.py ./
@@ -71,17 +75,17 @@ ENV LOG_DIR=/app/logs
 ENV DATABASE_PATH=/app/data/stock_analysis.db
 # Web/API service
 ENV WEBUI_HOST=0.0.0.0
-ENV API_PORT=8081
+ENV API_PORT=80
 
 # 暴露 API 端口
-EXPOSE 8081
+EXPOSE 80
 
 # 注意：Railway 不支持 Dockerfile 中的 VOLUME 指令
 # 如需持久化，请在 Railway Dashboard 中挂载 Volume 到 /app/data、/app/logs、/app/reports
 
 # 健康检查（FastAPI 模式）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD service_port="${PORT:-${WEBUI_PORT:-${API_PORT:-8081}}}" \
+    CMD service_port="${PORT:-${API_PORT:-${WEBUI_PORT:-80}}}" \
     && curl -f "http://localhost:${service_port}/api/health" || curl -f "http://localhost:${service_port}/health" \
     || python -c "import sys; sys.exit(0)"
 

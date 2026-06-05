@@ -29,6 +29,6 @@ services:
   server:
     <<: *common
     container_name: stock-server-local
-    command: ["python", "main.py", "--serve-only", "--host", "0.0.0.0", "--port", "${API_PORT:-8081}"]
+    command: ["python", "main.py", "--serve-only", "--host", "0.0.0.0", "--port", "${API_PORT:-80}"]
     ports:
-      - "${API_PORT:-8081}:${API_PORT:-8081}"
+      - "${API_PORT:-80}:${API_PORT:-80}"

@@ -86,3 +86,6 @@ static/
 docs/specs/
 docs/TECHNICAL_DOCUMENTATION.md
 docs/CHANGELOG.md
+docs/README_CHT.md
+docs/full-guide.md
+docs/deploy-webui-cloud.md
