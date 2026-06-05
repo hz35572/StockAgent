@@ -53,7 +53,7 @@ python main.py --webui
 启动成功后，终端会输出类似：
 
 ```
-FastAPI 服务已启动: http://0.0.0.0:8081
+FastAPI 服务已启动: http://0.0.0.0
 ```
 
 如果你想让服务在退出终端后继续运行，可以用 `nohup`：
@@ -66,7 +66,7 @@ nohup python main.py --webui-only > /dev/null 2>&1 &
 
 ### 修改端口（可选）
 
-默认端口是 8081。如果想改用其他端口，在 `.env` 里设置：
+默认端口是 80。如果想改用其他端口，在 `.env` 里设置：
 
 ```env
 WEBUI_PORT=8888
@@ -104,7 +104,7 @@ docker-compose -f ./docker/docker-compose.yml ps
 
 ### 修改端口（可选）
 
-默认端口是 8081。如果想改用其他端口，在 `.env` 里设置：
+默认端口是 80。如果想改用其他端口，在 `.env` 里设置：
 
 ```env
 API_PORT=8888
@@ -124,19 +124,19 @@ docker-compose -f ./docker/docker-compose.yml up -d
 服务启动后，在浏览器地址栏输入：
 
 ```
-http://你的服务器公网IP:8081
+http://你的服务器公网IP
 ```
 
 例如，如果你的服务器 IP 是 `1.2.3.4`，就输入：
 
 ```
-http://1.2.3.4:8081
+http://1.2.3.4
 ```
 
 如果你的域名已经解析到这台服务器，也可以直接用域名访问：
 
 ```
-http://your-domain.com:8081
+http://your-domain.com
 ```
 
 > **在哪里查公网 IP？** 登录你的云服务器控制台（阿里云/腾讯云/AWS 等），在实例列表里可以看到「公网 IP」或「弹性 IP」。
@@ -193,14 +193,14 @@ npm run build
 
 ### 1. 安全组 / 防火墙没有放行端口
 
-这是最常见的原因。云服务器默认只开放 22（SSH）端口，需要手动放行 8081（或你改的端口）。
+这是最常见的原因。云服务器默认只开放 22（SSH）端口，需要手动放行 80（或你改的端口）。
 
 **操作方法**（以阿里云为例）：
 1. 登录阿里云控制台 → 云服务器 ECS → 找到你的实例
 2. 点击「安全组」→「配置规则」→「添加安全组规则」
-3. 方向选「入方向」，端口范围填 `8081/8081`，授权对象填 `0.0.0.0/0`，点击「确定」
+3. 方向选「入方向」，端口范围填 `80/80`，授权对象填 `0.0.0.0/0`，点击「确定」
 
-腾讯云、AWS 等云厂商操作类似，找到「安全组」或「防火墙规则」，新增一条允许 TCP 8081 端口的入站规则即可。
+腾讯云、AWS 等云厂商操作类似，找到「安全组」或「防火墙规则」，新增一条允许 TCP 80 端口的入站规则即可。
 
 ### 2. 服务器系统防火墙拦截了
 
@@ -208,10 +208,10 @@ npm run build
 
 ```bash
 # Ubuntu / Debian（ufw）
-sudo ufw allow 8081
+sudo ufw allow 80
 
 # CentOS / RHEL（firewalld）
-sudo firewall-cmd --permanent --add-port=8081/tcp
+sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --reload
 ```
 
@@ -227,13 +227,13 @@ sudo firewall-cmd --reload
 
 检查访问地址里的端口是否和 `.env` / 启动命令里设置的端口一致。
 
-- 直接部署：默认 8081，可通过 `WEBUI_PORT=xxxx` 修改
-- Docker：默认 8081，可通过 `API_PORT=xxxx` 修改
-- Railway 等托管平台：如果平台注入了 `PORT`，应用会优先监听 `PORT`；未设置时回退到 8081
+- 直接部署：默认 80，可通过 `WEBUI_PORT=xxxx` 修改
+- Docker：默认 80，可通过 `API_PORT=xxxx` 修改
+- Railway 等托管平台：如果平台注入了 `PORT`，应用会优先监听 `PORT`；未设置时回退到 80
 
 ### 5. 页面能打开，但 UI 元素异常变大 / 布局错乱
 
-**症状**：浏览器能访问到 8081 端口，页面有内容，但文字、按钮、卡片尺寸异常大，没有正常布局与配色。
+**症状**：浏览器能访问到 80 端口，页面有内容，但文字、按钮、卡片尺寸异常大，没有正常布局与配色。
 
 **根因**：`static/index.html` 存在但 CSS/JS 资源缺失（`static/assets/` 为空或不存在），浏览器加载了 HTML 框架但无法拿到样式与脚本，退化为裸 HTML 渲染。
 
@@ -261,9 +261,9 @@ python main.py --webui-only
 
 ---
 
-## 可选：Nginx 反向代理（绑定域名 / 80 端口）
+## 可选：Nginx 反向代理（绑定域名 / HTTPS）
 
-如果你有域名，或者不想在地址里带 `:8081`，可以用 Nginx 做反向代理，把 80/443 端口流量转发给后端服务。
+如果你有域名并需要 HTTPS，可以用 Nginx 做反向代理。由于应用默认已经监听 80 端口，启用 Nginx 前请先把应用改到内部端口，例如 `API_PORT=8888` 或 `WEBUI_PORT=8888`，再让 Nginx 监听 80/443。
 
 ### 安装 Nginx
 
@@ -285,7 +285,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8081;
+        proxy_pass http://127.0.0.1:8888;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

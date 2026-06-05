@@ -48,8 +48,15 @@ RUN groupadd -g 1000 dsa && \
 # 复制依赖文件
 COPY requirements.txt .
 
-# 安装 Python 依赖
-RUN pip install --no-cache-dir -r requirements.txt
+# 安装 Python 依赖；默认使用 uv 加速解析与安装，可通过构建参数切换 PyPI 源。
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG UV_INDEX_URL=https://pypi.org/simple
+ARG UV_EXTRA_INDEX_URL=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL}
+ENV UV_INDEX_URL=${UV_INDEX_URL}
+ENV UV_EXTRA_INDEX_URL=${UV_EXTRA_INDEX_URL}
+RUN pip install --no-cache-dir uv \
+    && uv pip install --system --no-cache -r requirements.txt
 
 # Allow the non-root app user to bind the default HTTP port 80.
 RUN setcap 'cap_net_bind_service=+ep' "$(readlink -f "$(command -v python)")"

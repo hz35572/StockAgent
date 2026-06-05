@@ -217,7 +217,7 @@ python main.py --webui
 python main.py --webui-only
 ```
 
-訪問 `http://127.0.0.1:8081` 即可使用。認證、智能匯入、搜尋補全、歷史報告複製、雲端伺服器訪問等細節見 [本地 WebUI 管理介面](./full-guide.md#本地-webui-管理界面)。
+訪問 `http://127.0.0.1` 即可使用。認證、智能匯入、搜尋補全、歷史報告複製、雲端伺服器訪問等細節見 [本地 WebUI 管理介面](./full-guide.md#本地-webui-管理界面)。
 
 ## 🤖 Agent 策略問股
 
