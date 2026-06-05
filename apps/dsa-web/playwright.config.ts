@@ -13,15 +13,15 @@ function resolveBackendCommand() {
 
   const unixVenvPython = path.join(repoRoot, '.venv', 'bin', 'python');
   if (fs.existsSync(unixVenvPython)) {
-    return `${unixVenvPython} main.py --webui-only --host 127.0.0.1 --port 8081`;
+    return `${unixVenvPython} main.py --webui-only --host 127.0.0.1 --port 80`;
   }
 
   const windowsVenvPython = path.join(repoRoot, '.venv', 'Scripts', 'python.exe');
   if (fs.existsSync(windowsVenvPython)) {
-    return `"${windowsVenvPython}" main.py --webui-only --host 127.0.0.1 --port 8081`;
+    return `"${windowsVenvPython}" main.py --webui-only --host 127.0.0.1 --port 80`;
   }
 
-  return 'python main.py --webui-only --host 127.0.0.1 --port 8081';
+  return 'python main.py --webui-only --host 127.0.0.1 --port 80';
 }
 
 export default defineConfig({
@@ -39,7 +39,7 @@ export default defineConfig({
     {
       command: resolveBackendCommand(),
       cwd: repoRoot,
-      url: 'http://127.0.0.1:8081/api/v1/auth/status',
+      url: 'http://127.0.0.1:80/api/v1/auth/status',
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
