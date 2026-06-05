@@ -4,6 +4,10 @@ x-common: &common
   build:
     context: ..
     dockerfile: docker/Dockerfile
+    args:
+      PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+      UV_INDEX_URL: ${UV_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+      UV_EXTRA_INDEX_URL: ${UV_EXTRA_INDEX_URL:-}
   restart: unless-stopped
   env_file:
     - ../.env
