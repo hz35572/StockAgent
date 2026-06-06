@@ -92,16 +92,22 @@ OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
 
 ### 3. 使用 Docker 启动 Web 服务
 
+本地测试：
+
 ```powershell
-docker-compose -f ./docker/docker-compose.yml up -d --build server
+docker-compose -f ./docker/docker-compose.local.yml up -d --build server
 ```
 
-该命令使用 `docker/Dockerfile` 从当前源码构建镜像，不依赖 `ghcr.io/zhulinsen/daily_stock_analysis` 预构建镜像。
 
 启动后访问：
 
 - Web 服务：`http://localhost`
 - OpenAPI 文档：`http://localhost/docs`
+
+云服务器部署：
+```powershell
+docker-compose -f ./docker/docker-compose.yml up -d --build server
+```
 
 ### 4. 查看服务状态
 
@@ -143,80 +149,6 @@ docker-compose -f ./docker/docker-compose.yml down
 docker-compose -f ./docker/docker-compose.yml stop server
 ```
 
-## 使用方法
-
-
-### Docker 服务管理
-
-启动 Web 服务：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml up -d --build server
-```
-
-启动定时分析服务：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml up -d --build analyzer
-```
-
-同时启动 Web 服务和定时分析服务：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml up -d --build
-```
-
-重启 Web 服务：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml restart server
-```
-
-查看运行状态：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml ps
-```
-
-查看 Web 服务日志：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml logs -f server
-```
-
-停止所有服务：
-
-```powershell
-docker-compose -f ./docker/docker-compose.yml down
-```
-
-### Web 前端开发
-
-如需单独启动前端开发服务，可在本机运行：
-
-```bash
-cd apps/dsa-web
-npm ci
-npm run dev
-```
-
-生产构建：
-
-```bash
-cd apps/dsa-web
-npm run lint
-npm run build
-```
-
-## 配置说明
-
-DSA 主要通过 `.env`、系统环境变量和 Web 设置页管理配置。常用配置包括：
-
-| 配置类别 | 示例变量 | 说明 |
-| LLM 主模型 | `LITELLM_MODEL` | LiteLLM 模型名，如 `openai/...`、`deepseek/...`、`ollama/...`。 |
-| OpenAI compatible | `OPENAI_API_KEY`、`OPENAI_BASE_URL` | 兼容 OpenAI API 的平台接入配置。 |
-| 搜索服务 | `TAVILY_API_KEY`、`SERPAPI_API_KEY` | 新闻和事件检索。 |
-| 通知渠道 | `FEISHU_WEBHOOK_URL`、`TELEGRAM_BOT_TOKEN` 等 | 报告推送渠道。 |
 
 ## 项目结构
 
@@ -242,29 +174,4 @@ StockAgent/
 ├── templates/               # 报告模板
 ├── reports/                 # 本地生成的报告
 └── docs/                    # 项目文档
-```
-
-## 开发与验证
-
-后端推荐检查：
-
-```bash
-pip install -r requirements.txt
-pip install flake8 pytest
-./scripts/ci_gate.sh
-```
-
-如只修改少量 Python 文件，可先做最低限度编译检查：
-
-```bash
-python -m py_compile main.py server.py
-```
-
-前端推荐检查：
-
-```bash
-cd apps/dsa-web
-npm ci
-npm run lint
-npm run build
 ```
