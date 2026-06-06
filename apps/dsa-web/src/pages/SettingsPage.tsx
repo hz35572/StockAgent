@@ -23,6 +23,7 @@ import type { SystemConfigCategory } from '../types/systemConfig';
 const SETTINGS_VISIBLE_CATEGORIES = new Set<SystemConfigCategory>([
   'ai_model',
   'data_source',
+  'notification',
 ]);
 
 const DATA_SOURCE_VISIBLE_KEYS = new Set([
@@ -32,6 +33,23 @@ const DATA_SOURCE_VISIBLE_KEYS = new Set([
   'SERPAPI_API_KEYS',
   'NEWS_MAX_AGE_DAYS',
   'NEWS_STRATEGY_PROFILE',
+]);
+
+const NOTIFICATION_VISIBLE_KEYS = new Set([
+  'FEISHU_WEBHOOK_URL',
+  'FEISHU_WEBHOOK_SECRET',
+  'FEISHU_WEBHOOK_KEYWORD',
+  'EMAIL_SENDER',
+  'EMAIL_PASSWORD',
+  'EMAIL_RECEIVERS',
+]);
+
+const NOTIFICATION_HIDDEN_KEYS = new Set([
+  'FEISHU_APP_ID',
+  'FEISHU_APP_SECRET',
+  'FEISHU_APP_RECEIVE_ID',
+  'FEISHU_APP_RECEIVE_ID_TYPE',
+  'MERGE_EMAIL_NOTIFICATION',
 ]);
 
 type DesktopWindow = Window & {
@@ -386,6 +404,10 @@ const SettingsPage: React.FC = () => {
       })
       : visibleActiveCategory === 'system'
         ? rawActiveItems.filter((item) => !SYSTEM_HIDDEN_KEYS.has(item.key))
+      : visibleActiveCategory === 'notification'
+        ? rawActiveItems.filter((item) => (
+          NOTIFICATION_VISIBLE_KEYS.has(item.key) && !NOTIFICATION_HIDDEN_KEYS.has(item.key)
+        ))
       : visibleActiveCategory === 'data_source'
         ? rawActiveItems.filter((item) => DATA_SOURCE_VISIBLE_KEYS.has(item.key))
       : visibleActiveCategory === 'agent'
@@ -523,9 +545,9 @@ const SettingsPage: React.FC = () => {
   };
 
   const desktopUpdateNotice = getDesktopUpdateNotice(desktopUpdateState);
-  const shouldGuardActiveConfigPanel = visibleActiveCategory === 'agent';
+  const shouldGuardActiveConfigPanel = visibleActiveCategory === 'notification' || visibleActiveCategory === 'agent';
   const shouldShowActiveConfigPanel = visibleActiveCategory !== 'ai_model';
-  const activeConfigPanelErrorTitle = 'Agent 设置';
+  const activeConfigPanelErrorTitle = visibleActiveCategory === 'agent' ? 'Agent 设置' : '通知设置';
   const settingsPanelDiagnosticHint = isDesktopRuntime ? (
     <>
       请查看并提供桌面端日志
@@ -571,7 +593,7 @@ const SettingsPage: React.FC = () => {
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">系统设置</h1>
             <p className="text-xs leading-6 text-muted-text">
-              统一管理模型与数据源。
+              统一管理模型、数据源与通知渠道。
             </p>
           </div>
 

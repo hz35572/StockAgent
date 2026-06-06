@@ -154,19 +154,26 @@ vi.mock('../../components/settings', () => ({
     };
     showHelpButton?: boolean;
     showHelpDocs?: boolean;
-  }) => (
-    <div>
-      <div>{item.key}</div>
-      {showHelpButton ? <button type="button">查看 {item.key} 配置说明</button> : null}
-      {showHelpDocs ? <div>{item.key} 相关文档显示</div> : <div>{item.key} 相关文档隐藏</div>}
-      {item.schema?.description ? <p>{item.schema.description}</p> : null}
-      {item.schema?.options?.map((option) => {
-        const label = typeof option === 'string' ? option : option.label;
-        const value = typeof option === 'string' ? option : option.value;
-        return <span key={`${item.key}-${value}`}>{label}</span>;
-      })}
-    </div>
-  ),
+  }) => {
+    const titleByKey: Record<string, string> = {
+      MERGE_EMAIL_NOTIFICATION: '合并邮件通知',
+    };
+    const title = titleByKey[item.key] || item.key;
+
+    return (
+      <div>
+        <div>{title}</div>
+        {showHelpButton ? <button type="button">查看 {item.key} 配置说明</button> : null}
+        {showHelpDocs ? <div>{item.key} 相关文档显示</div> : <div>{item.key} 相关文档隐藏</div>}
+        {item.schema?.description ? <p>{item.schema.description}</p> : null}
+        {item.schema?.options?.map((option) => {
+          const label = typeof option === 'string' ? option : option.label;
+          const value = typeof option === 'string' ? option : option.value;
+          return <span key={`${item.key}-${value}`}>{label}</span>;
+        })}
+      </div>
+    );
+  },
   SettingsLoading: () => <div>loading</div>,
   SettingsPanelErrorBoundary: ({
     title,
@@ -519,6 +526,24 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
           },
         },
         {
+          key: 'FEISHU_WEBHOOK_SECRET',
+          value: 'webhook-secret',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'FEISHU_WEBHOOK_SECRET',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 3,
+          },
+        },
+        {
           key: 'DINGTALK_APP_KEY',
           value: 'ding-app-key',
           rawValueExists: true,
@@ -533,7 +558,7 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
             isEditable: true,
             options: [],
             validation: {},
-            displayOrder: 3,
+            displayOrder: 4,
           },
         },
         {
@@ -551,7 +576,133 @@ function buildSystemConfigState(overrides: ConfigOverride = {}) {
             isEditable: true,
             options: [],
             validation: {},
-            displayOrder: 4,
+            displayOrder: 5,
+          },
+        },
+        {
+          key: 'FEISHU_APP_SECRET',
+          value: 'app-secret',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'FEISHU_APP_SECRET',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 6,
+          },
+        },
+        {
+          key: 'FEISHU_APP_RECEIVE_ID',
+          value: 'ou_mock',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'FEISHU_APP_RECEIVE_ID',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 7,
+          },
+        },
+        {
+          key: 'FEISHU_APP_RECEIVE_ID_TYPE',
+          value: 'open_id',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'FEISHU_APP_RECEIVE_ID_TYPE',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'select',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: ['open_id', 'user_id', 'union_id', 'email', 'chat_id'],
+            validation: {},
+            displayOrder: 8,
+          },
+        },
+        {
+          key: 'EMAIL_SENDER',
+          value: 'sender@example.com',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'EMAIL_SENDER',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'text',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 9,
+          },
+        },
+        {
+          key: 'EMAIL_PASSWORD',
+          value: 'email-secret',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'EMAIL_PASSWORD',
+            category: 'notification',
+            dataType: 'string',
+            uiControl: 'password',
+            isSensitive: true,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 10,
+          },
+        },
+        {
+          key: 'EMAIL_RECEIVERS',
+          value: 'user@example.com',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'EMAIL_RECEIVERS',
+            category: 'notification',
+            dataType: 'array',
+            uiControl: 'textarea',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 11,
+          },
+        },
+        {
+          key: 'MERGE_EMAIL_NOTIFICATION',
+          value: 'false',
+          rawValueExists: true,
+          isMasked: false,
+          schema: {
+            key: 'MERGE_EMAIL_NOTIFICATION',
+            category: 'notification',
+            dataType: 'boolean',
+            uiControl: 'switch',
+            isSensitive: false,
+            isRequired: false,
+            isEditable: true,
+            options: [],
+            validation: {},
+            displayOrder: 12,
           },
         },
         {
@@ -652,13 +803,13 @@ describe('SettingsPage', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(mockedAnchorClick);
   });
 
-  it('renders only AI model and data source settings categories', async () => {
+  it('renders only AI model, data source, and notification settings categories', async () => {
     render(<SettingsPage />);
 
     expect(await screen.findByRole('heading', { name: '系统设置' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'AI 模型' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '数据源' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '通知渠道' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '通知渠道' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'System' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Base' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Agent' })).not.toBeInTheDocument();
@@ -685,15 +836,13 @@ describe('SettingsPage', () => {
   });
 
   it('redirects hidden active categories to the first visible settings category', () => {
-    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
+    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'agent' }));
 
     render(<SettingsPage />);
 
     expect(setActiveCategory).toHaveBeenCalledWith('ai_model');
     expect(screen.getByText('AI 模型接入')).toBeInTheDocument();
-    expect(screen.queryByText('FEISHU_WEBHOOK_URL')).not.toBeInTheDocument();
-    expect(screen.queryByText('DINGTALK_APP_KEY')).not.toBeInTheDocument();
-    expect(settingsPanelErrorBoundary).not.toHaveBeenCalledWith('通知设置');
+    expect(screen.queryByText('AGENT_ORCHESTRATOR_TIMEOUT_S')).not.toBeInTheDocument();
   });
 
   it('reset button semantic: discards local changes without network request', () => {
@@ -761,6 +910,30 @@ describe('SettingsPage', () => {
 
     expect(screen.getByText('AI 模型接入')).toBeInTheDocument();
     expect(screen.queryByText('当前分类配置项')).not.toBeInTheDocument();
+  });
+
+  it('renders only Feishu webhook and email fields on notification settings page', () => {
+    useSystemConfigMock.mockReturnValue(buildSystemConfigState({ activeCategory: 'notification' }));
+
+    render(<SettingsPage />);
+
+    expect(screen.getByText('FEISHU_WEBHOOK_URL')).toBeInTheDocument();
+    expect(screen.getByText('FEISHU_WEBHOOK_SECRET')).toBeInTheDocument();
+    expect(screen.getByText('EMAIL_SENDER')).toBeInTheDocument();
+    expect(screen.getByText('EMAIL_PASSWORD')).toBeInTheDocument();
+    expect(screen.getByText('EMAIL_RECEIVERS')).toBeInTheDocument();
+    expect(screen.queryByText('FEISHU_APP_ID')).not.toBeInTheDocument();
+    expect(screen.queryByText('FEISHU_APP_SECRET')).not.toBeInTheDocument();
+    expect(screen.queryByText('FEISHU_APP_RECEIVE_ID')).not.toBeInTheDocument();
+    expect(screen.queryByText('FEISHU_APP_RECEIVE_ID_TYPE')).not.toBeInTheDocument();
+    expect(screen.queryByText('MERGE_EMAIL_NOTIFICATION')).not.toBeInTheDocument();
+    expect(screen.queryByText('合并邮件通知')).not.toBeInTheDocument();
+    expect(screen.queryByText('WECHAT_WEBHOOK_URL')).not.toBeInTheDocument();
+    expect(screen.queryByText('DINGTALK_APP_KEY')).not.toBeInTheDocument();
+    expect(screen.queryByText('PUSHPLUS_TOKEN')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 FEISHU_APP_ID 配置说明' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查看 EMAIL_SENDER 配置说明' })).not.toBeInTheDocument();
+    expect(settingsPanelErrorBoundary).toHaveBeenCalledWith('通知设置');
   });
 
   it('keeps env backup and desktop update controls hidden with system settings', () => {
