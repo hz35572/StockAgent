@@ -12,7 +12,7 @@ RUN cp -a /app/api/v1/endpoints /tmp/dsa-base-endpoints
 COPY . /tmp/dsa-local-src/
 
 RUN set -eux; \
-    for path in api bot data_provider src strategies templates; do \
+    for path in api bot data_provider src templates; do \
         if [ -e "/tmp/dsa-local-src/${path}" ]; then \
             mkdir -p "/app/${path}"; \
             cp -a "/tmp/dsa-local-src/${path}/." "/app/${path}/"; \

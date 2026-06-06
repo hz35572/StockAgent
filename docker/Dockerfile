@@ -67,7 +67,6 @@ COPY api/ ./api/
 COPY data_provider/ ./data_provider/
 COPY bot/ ./bot/
 COPY src/ ./src/
-COPY strategies/ ./strategies/
 COPY --from=web-builder /app/static ./static/
 COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 

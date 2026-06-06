@@ -15,7 +15,6 @@ x-common: &common
     - ../data:/app/data
     - ../logs:/app/logs
     - ../reports:/app/reports
-    - ../strategies:/app/strategies:ro
   environment:
     - TZ=Asia/Shanghai
     - WEBUI_HOST=0.0.0.0
