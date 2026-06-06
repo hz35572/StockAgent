@@ -185,7 +185,7 @@ function getCsvCommitVariant(result: PortfolioImportCommitResponse, isDryRun: bo
 const PortfolioPage: React.FC = () => {
   // Set page title
   useEffect(() => {
-    document.title = '持仓分析 - DSA';
+    document.title = '持仓分析 - AI Stock Agent';
   }, []);
 
   const [accounts, setAccounts] = useState<PortfolioAccountItem[]>([]);

@@ -250,7 +250,7 @@ const SettingsPage: React.FC = () => {
 
   // Set page title
   useEffect(() => {
-    document.title = '系统设置 - DSA';
+    document.title = '系统设置 - AI Stock Agent';
   }, []);
 
   const {
