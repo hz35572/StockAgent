@@ -2,6 +2,11 @@
 
 Stock Agent是一套面向 A 股、港股、美股的 AI 投研辅助平台。项目通过多数据源行情抓取、技术指标分析、新闻检索、LLM 推理和通知推送，帮助用户自动生成每日股票分析报告、大盘复盘与策略问答结果。
 
+# 项目预览
+![股票分析](./docs/imgs/StockAgent1.png)
+
+![聊天问股](./docs/imgs/StockAgent2.png)
+
 
 ## 项目概述
 
@@ -11,20 +16,20 @@ Stock Agent的目标是把“数据获取 -> 技术分析 -> 新闻检索 -> AI 
 
 - 对 A 股、港股、美股和 ETF 做多市场行情聚合。
 - 结合技术指标、新闻、公告、资金流和基本面信息生成 AI 决策摘要。
-- 通过飞书、钉钉等渠道推送报告。
+- 通过飞书、邮箱等渠道推送报告。
 - 使用 Web 工作台进行手动分析、历史报告查看、配置管理和 Agent 问股。
 
 ## 核心功能
 
 | 模块 | 说明 |
 | --- | --- |
-| 多市场数据聚合 | 支持 A 股、港股、美股、ETF，接入 efinance、AkShare、Tushare、yfinance、Longbridge、TickFlow 等数据源。 |
+| 多市场数据聚合 | 支持 A 股、港股、美股、ETF，接入 efinance、AkShare、Tushare、yfinance、TickFlow 等数据源。 |
 | AI 分析报告 | 通过 LiteLLM 统一接入 OpenAI compatible、DeepSeek、通义千问等模型生态，输出趋势、评分、风险、催化因素和操作检查清单。 |
 | 大盘复盘 | 支持独立运行市场复盘，汇总指数、热点、宏观线索和市场情绪。 |
-| 新闻与舆情 | 支持 Tavily、SerpAPI 等搜索能力，为个股分析补充事件和新闻上下文。 |
+| 新闻与舆情 | 支持 Tavily、SerpAPI、SearXNG等搜索能力，为个股分析补充事件和新闻上下文。 |
 | Web 工作台 | React + Vite 前端提供手动分析、历史报告、配置管理、Markdown 渲染、主题切换等能力。 |
 | Agent 问股 | 支持多轮策略问答，可围绕均线、趋势、热点、事件、成长、预期等维度组织分析。 |
-| 通知推送 | 支持飞书、钉钉等渠道。 |
+| 通知推送 | 支持飞书、邮箱等渠道。 |
 
 ## 技术架构
 
@@ -53,7 +58,7 @@ Stock Agent的目标是把“数据获取 -> 技术分析 -> 新闻检索 -> AI 
 
 | 层级 | 技术 |
 | --- | --- |
-| 后端 | Python 3.10+、FastAPI、SQLAlchemy、SQLite、pandas、numpy、schedule、tenacity |
+| 后端 | Python 3.10+、FastAPI、LangGraph、SQLAlchemy、SQLite、pandas、numpy、schedule、tenacity |
 | AI 接入 | OpenAI SDK |
 | 数据源 | efinance、AkShare、yfinance、TickFlow |
 | 前端 | React 19、TypeScript、Vite、Tailwind CSS、Zustand、Recharts、React Router |
@@ -82,7 +87,6 @@ cd StockAgent
 在项目根目录创建 `.env` 文件，并至少配置自选股和一个 LLM 渠道。下面是最小示例：
 
 ```env
-STOCK_LIST=600519,000001,AAPL,hk00700
 LITELLM_MODEL=openai/deepseek-ai/DeepSeek-V3
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
 OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
